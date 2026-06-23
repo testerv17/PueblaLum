@@ -1,0 +1,1379 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Centro de Control · Alumbrado Público · Puebla</title>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─────────────────────────────────────────── */
+:root{
+  /* Brand guindo institucional Puebla */
+  --blue:       #7a1f3d;
+  --navy:       #4a0f24;
+  --sky:        #b13a5e;
+  --blue-pale:  #f7e9ee;
+  --blue-dim:   rgba(122,31,61,.09);
+  --blue-border:rgba(122,31,61,.2);
+
+  /* Semánticos */
+  --red:        #e53e3e;
+  --red-dim:    rgba(229,62,62,.1);
+  --red-border: rgba(229,62,62,.28);
+  --orange:     #dd6b20;
+  --orange-dim: rgba(221,107,32,.1);
+  --green:      #12b76a;
+
+  /* Surfaces — light */
+  --bg:         #f6eef1;
+  --surface:    #ffffff;
+  --surface-2:  #fbf4f6;
+  --surface-3:  #f3e6ea;
+  --line:       #ecd9e0;
+  --line-md:    #e0c2cd;
+
+  /* Text */
+  --ink:        #2b121b;
+  --ink-2:      #344054;
+  --muted:      #6b7a92;
+  --faint:      #9aaabf;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 3px rgba(74,15,36,.08), 0 1px 2px rgba(74,15,36,.06);
+  --shadow-sm: 0 2px 8px rgba(74,15,36,.10);
+  --shadow-md: 0 4px 20px rgba(74,15,36,.12);
+  --shadow-lg: 0 8px 36px rgba(74,15,36,.16);
+
+  --font:  'Plus Jakarta Sans', system-ui, sans-serif;
+  --mono:  'JetBrains Mono', 'Courier New', monospace;
+  --r-sm:  4px;
+  --r:     8px;
+  --r-lg:  12px;
+  --r-xl:  16px;
+}
+
+/* ─── RESET ──────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+
+/* ─── APP GRID ───────────────────────────────────────── */
+.app{
+  height:100vh;
+  display:grid;
+  grid-template-rows:58px 80px 1fr
+}
+
+/* ─── TOPBAR ─────────────────────────────────────────── */
+.topbar{
+  background:linear-gradient(90deg,#3a0c1c 0%,#7a1f3d 58%,#a83a5b 100%);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 20px;
+  box-shadow:0 2px 12px rgba(58,12,28,.30);
+  position:relative;
+  z-index:5
+}
+
+/* Línea de acento inferior */
+.topbar::after{
+  content:'';
+  position:absolute;
+  inset:auto 0 0 0;
+  height:2px;
+  background:linear-gradient(90deg,rgba(255,255,255,.0),rgba(255,255,255,.3) 35%,rgba(255,255,255,.08) 70%,rgba(255,255,255,.0))
+}
+
+.brand{display:flex;align-items:center;gap:14px}
+
+/* Logo frame limpio — sin recuadro */
+.brandLogoFrame{
+    width:80px;
+    height:70px;
+    flex:0 0 75px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:transparent;
+    border:none;
+    overflow:visible;
+}
+
+.brand img,
+.brandLogoFrame img{
+    width:auto;
+    height:60px;
+    max-width:70px;
+    max-height:70px;
+    object-fit:contain;
+    border-radius:0;
+    filter:none;
+}
+
+.brandText strong{display:block;font-size:16px;font-weight:700;letter-spacing:-.02em;color:#fff}
+.brandText span{display:block;font-size:10.5px;font-weight:400;color:rgba(255,255,255,.72);margin-top:2px;letter-spacing:.01em}
+
+/* Live pill */
+.topStatus{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 12px;border-radius:999px;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.22);
+  font-size:11px;font-weight:600;color:#fff;white-space:nowrap
+}
+
+.liveDot{
+  width:7px;height:7px;border-radius:50%;
+  background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.25);
+  animation:livePulse 2s infinite
+}
+@keyframes livePulse{
+  0%{box-shadow:0 0 0 0 rgba(74,222,128,.4)}
+  70%{box-shadow:0 0 0 8px rgba(74,222,128,0)}
+  100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}
+}
+
+/* ─── KPI BAR ────────────────────────────────────────── */
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  background:var(--surface);
+  border-bottom:1px solid var(--line);
+  box-shadow:var(--shadow-xs);
+  z-index:4
+}
+
+.kpi{
+  padding:11px 18px;
+  border-right:1px solid var(--line);
+  position:relative;
+  transition:background .15s
+}
+.kpi:last-child{border-right:none}
+.kpi:hover{background:var(--surface-2)}
+
+/* Franja de color arriba */
+.kpi::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  border-radius:0 0 2px 2px
+}
+.kpi:nth-child(1)::before{background:var(--blue)}
+.kpi:nth-child(2)::before{background:var(--red)}
+.kpi:nth-child(3)::before{background:var(--orange)}
+.kpi:nth-child(4)::before{background:var(--faint)}
+.kpi:nth-child(5)::before{background:var(--green)}
+
+.kpi label{
+  display:block;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.1em;
+  font-size:9px;font-weight:600;font-family:var(--mono);margin-bottom:4px
+}
+.kpi strong{
+  font-size:26px;font-weight:700;line-height:1;
+  letter-spacing:-.04em;color:var(--ink)
+}
+.kpi.report strong{color:var(--red)}
+.kpi small{font-size:10.5px;font-weight:400;color:var(--faint);margin-top:3px;display:block}
+
+/* Animación entrada */
+.kpi{animation:kpiIn .3s ease both}
+.kpi:nth-child(1){animation-delay:.04s}
+.kpi:nth-child(2){animation-delay:.08s}
+.kpi:nth-child(3){animation-delay:.12s}
+.kpi:nth-child(4){animation-delay:.16s}
+.kpi:nth-child(5){animation-delay:.20s}
+@keyframes kpiIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── LAYOUT ─────────────────────────────────────────── */
+.layout{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 380px;
+  height:calc(100vh - 138px)
+}
+
+/* ─── MAP AREA ───────────────────────────────────────── */
+#map{width:100%;height:100%}
+
+.mapArea{position:relative;min-width:0}
+
+/* Dock vertical de controles del mapa */
+.mapControls.verticalDock{
+  position:absolute;top:14px;left:14px;z-index:6;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  width:46px;padding:8px;border-radius:var(--r-xl);
+  background:rgba(255,255,255,.88);
+  border:1px solid var(--line-md);
+  box-shadow:var(--shadow-md);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
+}
+
+.mapControls.verticalDock .toolbar{display:contents}
+
+.mapControls.verticalDock .styleBtn,
+.mapControls.verticalDock .chipBtn{
+  position:relative;
+  width:32px;height:32px;min-width:32px;padding:0;margin:0;
+  border-radius:var(--r);border:1px solid var(--line);
+  display:grid;place-items:center;
+  background:var(--surface);color:var(--muted);
+  font-size:0;
+  box-shadow:var(--shadow-xs);
+  transition:all .16s ease
+}
+
+.mapControls.verticalDock .styleBtn i,
+.mapControls.verticalDock .chipBtn i{font-size:13px;line-height:1}
+
+.mapControls.verticalDock .styleBtn:hover,
+.mapControls.verticalDock .chipBtn:hover{
+  background:var(--blue);color:#fff;border-color:transparent;
+  transform:translateX(2px);
+  box-shadow:0 4px 12px rgba(11,92,171,.3)
+}
+
+.mapControls.verticalDock .styleBtn.active{
+  background:var(--blue);color:#fff;border-color:transparent;
+  box-shadow:0 4px 12px rgba(11,92,171,.3)
+}
+
+/* Tooltip */
+.mapControls.verticalDock .styleBtn::after,
+.mapControls.verticalDock .chipBtn::after{
+  content:attr(data-label);
+  position:absolute;left:44px;top:50%;
+  transform:translateY(-50%) translateX(-4px);
+  opacity:0;pointer-events:none;white-space:nowrap;
+  background:var(--navy);color:#fff;border-radius:999px;
+  padding:5px 10px;font-size:10px;font-weight:600;
+  letter-spacing:.02em;box-shadow:var(--shadow-sm);
+  transition:all .15s ease;z-index:10
+}
+.mapControls.verticalDock .styleBtn:hover::after,
+.mapControls.verticalDock .chipBtn:hover::after{
+  opacity:1;transform:translateY(-50%) translateX(0)
+}
+
+.dockDivider{
+  width:22px;height:1px;background:var(--line);margin:2px 0
+}
+
+#btnFit{background:var(--navy);color:#fff;border-color:var(--navy)}
+#btnFit:hover{background:var(--blue);border-color:var(--blue)}
+
+/* Leyenda flotante */
+.floating{
+  position:absolute;left:16px;bottom:14px;z-index:4;
+  display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,.9);
+  border:1px solid var(--line);
+  border-radius:999px;padding:8px 14px;
+  box-shadow:var(--shadow-sm);
+  font-size:11px;font-weight:500;color:var(--ink-2);
+  backdrop-filter:blur(8px)
+}
+
+.legendCircle{
+  width:9px;height:9px;border-radius:50%;
+  display:inline-block;margin-right:5px;
+  border:1.5px solid rgba(255,255,255,.7)
+}
+
+/* Mapbox nav control offset */
+.mapboxgl-ctrl-top-left{top:72px!important}
+
+/* ─── POPUP MAPBOX ───────────────────────────────────── */
+.mapboxgl-popup-content{
+  border-radius:var(--r-xl);
+  box-shadow:var(--shadow-lg);
+  padding:0;overflow:hidden;
+  border:1px solid var(--line-md)
+}
+
+.pop{min-width:210px}
+
+.pop h4{
+  margin:0;
+  padding:10px 14px;
+  font-size:14px;font-weight:700;
+  color:#fff;letter-spacing:.02em;
+  background:linear-gradient(135deg,var(--navy),var(--blue))
+}
+
+.popLine{
+  display:flex;justify-content:space-between;
+  border-bottom:1px solid var(--line);
+  padding:7px 14px;gap:16px;font-size:12px
+}
+.popLine b{color:var(--muted);font-weight:500}
+.popLine:last-of-type{border-bottom:none}
+
+.pop .btnPop{
+  display:block;margin:10px 14px 14px;
+  width:calc(100% - 28px);
+  border:0;border-radius:var(--r);padding:9px;
+  background:var(--blue);color:#fff;
+  font-weight:600;font-size:11.5px;letter-spacing:.02em;
+  cursor:pointer;transition:background .15s;
+  box-shadow:0 2px 8px rgba(11,92,171,.25)
+}
+.pop .btnPop:hover{background:#0a4fa0}
+
+/* ─── SIDE PANEL ─────────────────────────────────────── */
+.side{
+  background:var(--surface);
+  border-left:1px solid var(--line);
+  box-shadow:-2px 0 12px rgba(8,40,90,.06);
+  overflow:auto;z-index:3;
+  animation:panelIn .3s ease both
+}
+@keyframes panelIn{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+
+/* Side header */
+.sideHead{
+  padding:14px 16px;
+  border-bottom:2px solid var(--blue-border);
+  background:var(--blue-dim)
+}
+
+.badge{
+  display:inline-flex;gap:6px;align-items:center;
+  border-radius:999px;padding:5px 10px;
+  font-size:10px;font-weight:600;font-family:var(--mono);letter-spacing:.04em;
+  background:rgba(122,31,61,.1);color:var(--blue);
+  border:1px solid var(--blue-border)
+}
+
+.currentTitle{
+  display:flex;justify-content:space-between;
+  gap:12px;align-items:flex-start;margin-top:10px
+}
+
+.currentTitle h2{
+  font-size:20px;margin:0;font-weight:700;
+  letter-spacing:-.02em;color:var(--ink)
+}
+
+.statusPill{
+  padding:5px 10px;border-radius:999px;
+  font-size:10px;font-weight:600;font-family:var(--mono);
+  background:var(--surface-3);color:var(--muted);
+  border:1px solid var(--line);white-space:nowrap
+}
+.statusPill.reported{
+  background:var(--red-dim);color:var(--red);
+  border:1px solid var(--red-border)
+}
+
+/* Side body */
+.sideBody{padding:14px 16px 80px}
+
+.search{display:flex;gap:8px;margin-bottom:12px}
+
+.search input,.select,textarea{
+  width:100%;border:1px solid var(--line-md);
+  border-radius:var(--r);padding:10px 12px;
+  font-size:12px;font-weight:500;
+  background:var(--surface-2);color:var(--ink);outline:none;
+  transition:border .15s,box-shadow .15s;font-family:var(--font)
+}
+.search input:focus,.select:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px var(--blue-dim)
+}
+.search input::placeholder{color:var(--faint)}
+
+.search button,.primaryBtn{
+  border:0;border-radius:var(--r);
+  background:var(--blue);color:#fff;
+  font-weight:600;font-size:12px;
+  padding:10px 14px;
+  box-shadow:0 2px 8px rgba(11,92,171,.22);
+  cursor:pointer;transition:background .15s;
+  font-family:var(--font)
+}
+.search button:hover,.primaryBtn:hover{background:#0a4fa0}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+
+/* Cards */
+.card{
+  border:1px solid var(--line);
+  background:var(--surface);
+  border-radius:var(--r-lg);
+  box-shadow:var(--shadow-xs);
+  padding:14px;margin-bottom:12px
+}
+
+.card h3{
+  font-size:9px;text-transform:uppercase;
+  letter-spacing:.12em;margin:0 0 10px;
+  color:var(--blue);font-weight:600;
+  font-family:var(--mono)
+}
+
+.row{
+  display:flex;justify-content:space-between;
+  gap:12px;border-bottom:1px solid var(--line);
+  padding:8px 0;font-size:12px
+}
+.row:last-child{border-bottom:0}
+.row span:first-child{color:var(--muted);font-weight:500}
+.row span:last-child{font-weight:600;text-align:right;color:var(--ink)}
+
+/* History */
+.history{display:flex;flex-direction:column;gap:10px}
+
+.event{
+  border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:11px;
+  background:var(--surface-2);
+  display:grid;grid-template-columns:10px 1fr;gap:10px
+}
+.event.active{background:#fff7f7;border-color:var(--red-border);border-left:3px solid var(--red)}
+
+.dot{width:10px;height:10px;margin-top:4px;border-radius:50%;background:var(--blue)}
+.dot.red{background:var(--red);box-shadow:0 0 0 5px rgba(229,62,62,.12)}
+
+.event strong{display:block;font-size:12.5px;font-weight:600}
+.event small{display:block;color:var(--muted);font-weight:400;margin-top:2px;font-size:11px}
+
+/* Botones acción bottom */
+.primaryBtn+.primaryBtn{margin-top:8px}
+
+/* ─── RESPONSIVE ─────────────────────────────────────── */
+@media(max-width:980px){
+  body{overflow:auto}
+  .app{height:auto;grid-template-rows:auto auto auto}
+  .topbar{height:auto;padding:12px 14px;flex-wrap:wrap;gap:10px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .layout{grid-template-columns:1fr;height:auto}
+  #map{height:60vh;min-height:400px}
+  .side{border-left:0}
+  .topStatus{display:none}
+  .brandLogoFrame{width:150px;flex-basis:150px;height:38px}
+  .brand img,.brandLogoFrame img{width:150px;max-width:150px;max-height:36px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+  <div class="brand">
+    <div class="brandLogoFrame" aria-label="Gobierno de la Ciudad de Puebla">
+      <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAb8BvwMBIgACEQEDEQH/xAAcAAEAAgMBAQEAAAAAAAAAAAAABgcEBQgBAwL/xABTEAABAwMBBQUDBgcNBgYCAwABAAIDBAURBgcSITFBE1FhcYEUIpEVMkKhsbIjM1JyksHRFhc1NlNVYnN0gqLC8CQ0Q3WT4SVUY5TS8dPiRVZk/8QAGgEBAAIDAQAAAAAAAAAAAAAAAAEEAgMFBv/EAC4RAQACAgEDBAECBQUBAAAAAAABAgMRBBIhMRMiQVFhFDMycYGRoQUjUrHwQv/aAAwDAQACEQMRAD8AgKIiyekEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAXhcAMkgeqlGgdKDVVyljmmdDS0zQ6VzMbzs5wB3cjk/6Fh2+nslvqJ6fT+kKi4tppDDNVDszl7eYDpHAuI+CK2Xk1xz062pUceXFDwGTwHiujaO82kyNp6ujdbZjwbFV04jDj3Nd813oVuJKSkkbuvpoXNPQxgj7E2rzz9eauWQ4HkQfJerpC46O09cgfarTSk4xvMZuOHkRhQi/7IYtx8tgrXseBkU9Ud5p8A7mPXKbbKc7HbtPZUyLIuVBWWusko7jTvgnjPFjxjh0I7x4hY6LkTExuBEREiIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIrMsGzuO7aEbUuIiudS41FPI7o3HutPgRx9co15MtccRNlZovpUQS0tRLTVMbopoXlkkbhgtcOYXzRnE78CIiJEREBET0ygdEU90hoik1ZpV9RBUGluUFQ+IyFu8yTgHAOHk7mForxovUNoe4T22WaMf8WmBlafhx+pGqM1JtNd94R9PJZ1DZrpcJhFRW2sleTjAgcAPMkYHqrK0xsmjaG1Go6jtHEcKWnJDW/nP5n0x6ojLnx4v4pVOeBwnI4K6Rh0bpuGERMstHuAdYgT8VXG1vTVosdHQVFqomU0k87mP3CcEbueSbacfMrkt0xHlENH6kn0xeG1kLe0hkHZzw5xvt8D3jp696tWglfUSz3/RFVBVRVLt+ttU7tzMmOLmnmx/fkEHHqqP7s8VmWWrqKG6009JUyU0naNaZYzghpPHPePAoyz4Iv7o8r9oNU2qvmFuubH2+tk4Gir2hpf+aT7rx5Erd01HDS8KYOjZ/Jg+6PIdPRfmsoKO50ns1dTxVUDxxbK0OB8VrobDLbv4GuE1PH0p5x28Q8gSHAeThhQ5E9M+OzaV1wpLfAZ6+phpogQN+V4aPiV5Q3GiuMRkoKuCpjBwXQSB4B9CtNebdca72StiZStuFC8viY9xfFKCMFpOMtJHI4OD3rGbX2apq4o7zQ/JdzJ3YzNiNzz3MlHBw8M+igiu4frXmlYdTWkhjWtroAXU0vj1afA/91z49ro3vZI1zJGOLXseMFpHAg+IK6mp4nRN3XTPlb0L8Z+PVU9th026jr2X2lj/AAFSdyoAHzZOh9eXmPFTErvCz6n05VyiIpdQREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERBl2ilhrrrRUdS/s4aioZE93cCcH/Xiun442RRsjjAaxgDWgdAuVQ98TmSRHEjHB7D3EHIPxXSultQ0WpLU2voj13ZY3c4njm0pLm/6hWZ1PwrvbfbYYZbdc442tkmc6GVwHF2AC36t5Vd5q4dsMF2ucVBQ0FsqKinikNQ+WNmRvYLQ34Od9SqCWOSGV8U8bo5GEhzHtwQfEJDfxLf7URPl+UREWxERAREQW3sKqc0V4pfyJ45R/eaW/5FafRURsp1FQWC5Vwuk/YQ1UTGh5aSA5pPPHLmVd1DX0lfEJaKphnYfpRPDvsUS4vLpPqzOmSOScF5lam+aktNihdJcq2OIjlGOL3eTRxRWiszOohuFWO3T+CrT/AGp33Csaq2xxCcilssjoAeDpagMcR5AHHxWr2h6lg1TpW2V1PTywBlc+NzJSDxDDyIPEJC5gwZKZazaFdrwgHnyXo4jgil11q7Pto0MVPDatQSbhZ7sNY7iCOgf3eataKRk0bZIntexwyHNOQVypwHzs7vXAXTtgjoobNRstrI2UfZNMQjGBghRLk83DWk9UfL6XW6UFopjU3Oqipocgb8hxknoO9YFLfbBfmmkjq6Wp3xh0EoGXj813MLG1jaa2tNBcrUIpK62TGaOCb5kwLS1zc9CQeB6Ffm26gsuoc26vpxBWt/GW6vjAeD4A8HDxGUVYrHTuGxp7NHRYFunmpo+kO9vxjya7kPLC+9zt0N1tc1BcGCSKZm4/dGPUdy+UdrNMQaCqmib/ACT3GSP4O4j0IWxi3t38Ju73XdPBQw3O3NGpbDV6cu0tBWcSDmKXGBMz8ofrHQrV+S6U1Rpyh1LQey17OLcmKZvB8R7wf1Ki9VaMu2mZHOqou2owfdq4Qd3H9IfR9eHisnY4/KrkjVvKPoniiLYiIgIt9bNGajucYkpLXMIjydNiPP6WCvtX6E1NQQummtcj2NGSYXCQj0ByjX6uPeuqEbRPPhxI49ERsEREBERAREQEREBERAREQEREBERAREQEREBETlxKkSvZpZ6G+am9lucPbQNgdJuZwCQRjPhx5K86mgjjtE9HQRxwN9ndHEyNoa1uQQMAclEdmOkrfbqCkvkck0tZVU4JLzgMBwSAFPTyWLicrL15O3iEW2b3OW7aQoZqmQyVEIMEr38S5zTjJ9MKHbXtKTOrGXu20r5e1buVTImbxBA4PIHgMHyC3OzyZlq1JqiwyvDNyt9op2k4y2TJw3y4fFWDwKHXOHL1VcojHLu+peq+deaFptQ0rprdFTU1za7Palm6Jh+S8jifA9FXkeyzVD4pHuZQxlo92N1QSX+WG4+JCl0cfLx3rueyEotndtPXizki5W6eBo5v3d5n6Q4LWIsVtFo3AiIjIXsT3wv34ZHxP/KjcWkeoXiIiYifLNdeLs+PcdeLmWfkmtlI+G8t7ovRNbqic1MjzTW9p9+pPF0h6huefmeA8VrNKWSTUN+prcwkMed6Zw5tYPnfs9V0fRUlPQ0kdLSRMhghaGxxsGA0BFLlZ4xe2kd1bappNI6JtL6WO3MnuVTE5sbnNa+UZBG+XO+aPJQCqbnZ7SNDsH5UkAPcez5rY7VYKtmuKp1QHFkrIzT8ObN3GB/e3visSeCf9wdIOwlLvlV+R2bsj8H5IyxRFa1mbb2ntgodH67te423spbhBG1spY1rJRwwHZb84HHMqCa00XX6Wm7R7vaKCR+IqhoxjP0XjoencfPgs7ZFFUO1rE+AO3I6eT2j80jAB/vbvDw8Fd9xt9NcqGeirImy08zC17Hccgor3yzx8uoncOXM+am+gtfy6caKC4MlqLaTlu5xfBnnjPNvXHwUa1JaJbFfay2zEu7F/uPP0mEZafgtai/atctNT4dOWi9W29U4mttZFUNI47juI8xzCXmw2y9QiO50UNQG/Mc9vvM8Wu5j0VG7Mq212/VMM12cI2bhEMjz7rZDjGe7h1XQMUjJWB8bw9p5OByColx8+KcN9QjUVkvdnbiy3b2qnaPdpLm5z8eDZR7w9Q5bKju7yRHcaCooZv6WHxu/Ne3hjzwfBbZeFQ1Tbfl41wcMjBHeCjmNe0h4BaeYI4KNVt4vc14qqCw0Vve2jDO2dWTvYXFwyA0NaeHDmVm22+mWYUd0pJLfXHg2OQhzJf6t44O8uB8FJNZjug+0XZ7A+lkuun4GRTR5fNTRjDZG9S0dHdcciqj6Z6HkurOfRUJtP038hX8z0zN2hriZGDox/wBJvlxz6+CmHR4eeZn07ShytfY9pmiqKA32shZNN2zo4A8AiPd4FwHfnIz4KCaIsQ1JqOnt8mRAAZpyDg7jcZA8SS0eq6JoaOmt9JHS0ULIIIhusjY3ACSnm5tR0R5ZG6EIC0N+1fZtP1kFLdqh8D52F7Hdk5zcA44loOPVaqs2oaUgb+Cr3VUh+bFTwuc532D61DnRjvPeIaXa1pKmloX36hjbFUQYNSGjAkZn5x8R39Qqf8xhXJU1uqddRvo6GiNms0wLJp6puZJGHmA094/+1VWoKGO13yvoIXufHTTGNrnczjvUurw7TFei092AiIi4IiICIiAiIgIiICIiAiIgIiICIiAiIgeWSc4AAzn0Vg6c2WXK4NiqLxKyipnje7Ee9Njx6N+tfvYxbKGtutbVVUHa1FI1joC75rN7eBOO/gMequV8scMTpJntYxgy5zjgAeKOdyuVatvTo/NLTw0dJDTU7AyGFgYxo6ADAVf602gujqfkXS3+03KV/ZmZoy1juWG9C76h6KO6+2kuuAfbrDO6GjJLZKocHTDub3N8eZX52LWcVV7qblLGTFRMDIsjh2juvoB/iRqpx+inq5P7MOu0k+06ptdNqGsmlFyaS+rjed5kx7nHnglvnlSqqp9c6PaZqGs+XrWznFOMyxt+0+hPl1W32sWd1y0q+pp8tq7e8VETm8wBwdj04+bQt/pa6NvWnbfcRgGeBrntH0X4w4ehBTbG2abUi89/iUYsm1Ox1zmxXLft054ZmGY8/nDl64U4p54aqJs1NKyWJw4PY7eBVc7Q9nst1rYq/T9PE2pldipa54Yw8OD/AD6HA48FHaLQ2vbA7trRKyNw+hTVY4+bXgNPqoPSw5K7pbU/UrV1jD2+krzEBxfQzAee4VzS05aD4ZVrza41Bb6Ceg1fY5mGWJ0ftETMDiCOOMtPoVAdJ6Yr9S1jaOkwyKMDt53fNjb+snoFMLPEj0qWm3h+ItN3qe1G6RW2d1CBvdsMchzOM5I8QFql1DbqBtHaqegJEjIoRESRjeAGOSjlZs20tUwljLY2mOOD6eVzCPrx8Qm2NOfG5i0KBQAk8ASe4Lfaw0xU6avAopC6eOZpfTygcZGjmMd44fHxWvsU/st9ts5GAyri3s92+AUXovW1d1WHsOoj7Vd62Rha5rI4WbzcYyXF32NVur8Mjaz5jQM88DC/fLmsZcLNknJebS111slvurqaStp2vkpZBJBIODmOHcR07xyWb2bMY3RgHuWr1DqW06egbLdasRb/AAZG0Fz3+TRx9eSiX77tj7bd9krxHn5/Zt+zeUprjy3jcROkys1it1lE5oKcMfUSOllkPFz3Ek8T+rotkeS1dg1DatQUxntVW2ZreD24LXsPcWniFtVDXaLb93lTe26hxd7bWRRlzpYHRyFrc53SCPvOVanIOCMELqqVjC0uexpAHUZXL1zl9oulbN+XUSEeW8cfUsodXhZZtXo14Y3TCz7be7tauNtuNVTAcmxye76t5H4LAAJ4NBJ7gMqQab0Xe9S0z6q2xQeztfuCSeXca4jnjAJPmi3kmkRu7aWfWOurtVx0FuuL6id//wDni90dSTu8Apls91XeKm/11g1NLv1kYJicWNact+c33QARggg4W30FoeLS8RqKh4qLlICHytJDWtOPdA9OfNRDanT1tg1XbtS0bie0cG8Bwa5mPdPfvAn4Jtzptiy3mlIj8fzTvUVnrW17L7YNz5Rjj7OaB5wyrizncPc4dD5jqvvarvbdS0ssEkG5NHwqKKpZiSF3iPscF7pjVVq1JTb9BUDt2NBmp3DD4ye8dR4jgvreNP0l0lZVNL6W4Q57GsgO7Izw7nN/ouyFCnPb238tjSwugjDDI6Ro+aX8XAdAT18zx81H9otiF+0vUwsYDUw/h4D/AEm9PUZHqthQ1ddTSCnu8IJ5MrIR+Dk/OHNh8+Hj0W1dxHejGtppaJ+lKbFaGebUVVXsfuQ09MY3txxeXkYHpu5Un2uz1TxY7ZSzyQtrKoNe6N5bniAOI88+ix9FW2osm0u/UEJ3KIwiZrPyg5wLMeXvj0Wx2tV0MNjgpIQw3SoqGexj6bCHAlze7uz4p8rl7dXIiX2odn0EOpIbvWXKrrhTsDYYql28QQMcXdQM8B3qT1NNTUcL6iGgje9nvFscQ3nDrjvOOnVfqyU01HaqSnqZXzTMiaJJHuy5zscSfVZp5oqXyWme8tNX3+jpbFW3VpkkipYnPI3C0nA4N4gcei5xrqmWtrZ6uox208jpH45ZJz8Fdu1e/wAFtsT7a+IyyXGN8QLXgdlw+cR54VGNBcQ1rS5zjgADJJ7gph0uDTVZsIsu522ptUzKetDGVDmBzoQ7LoweQd3HwyT3rEReiYnvAiIiRERAREQEREBERAREQEREBERAXrGuke1kYLnuIDWtGSSeQC858OSl+gbhZbG2tvN1jE1XTlrKGAcXFxByQPgM9EYZLzSu4jaxNG2yk0JpaWtvczIJ58S1Lic4wMNjHeR3d5K0LZrttQr5I45JbfpynOH4HvTO7j3nw5DxK1d2sGuNakXGqpI4IsZgpppezDB0w3BOfE4J8FbWnbRBZbNSW+Ae7DGA4j6Tup9SkuVeYp7t7tP+GJZtIWGzRBtDboA/HvSyjtJHebjxW5jhjhH4JjGDqGjC+nIKAa32hU1qqY7Vbpo3VLpWNqp85bTMJG8fzgOOOnXuMK1Yvln7TyaNk8T4pG7zHtLXDvBHFQDZhK+1V970rUHD6CodJBn6UTjwI/wn+8pRqPUlv03SU1TcXSdlPMIWljd4g7pdnHdgKG3m40MGsbDqq11UU1HWE0FVJG7I48Wh3cfA/ko24qzNZrMdp/7hYF0u1DZ6YVNzqWU0Be2PtJOW8eAWSyZksYkjc17XDIc05BHgq121w3KehoRTUsstBE50k0sY3gx3IbwHHGC7jyX42IMrXUdfLJUyOomubHBCTlgdzJHdzHJNI9GPR9TbabYbgyn0m6kbMxk1TMxoYSN4sBy4gegWTsjt8VJoylnYB2tU98srh1O8QB6NACgMlJ+7HalVUV0me2nZJI0Na7BEceAGN7snifMlXJaLdR2a3RUNBH2NNFncYXE4ySTxJzzJRsy/7eKMfzPdndEPwUeuWsrNQVBpWVDq2tBx7LRRmaQHuIby9cLEFbq67D/ZKCks0Dv+LWntpseDGndB8yfJQr9E/KSVDKfeE07Isx53XvxlueeCeXJUDtPrLdNqeoqbLJE9rY29pJEcsMozyPLuVvR6Mpag9pf62svMv5NU8CIeUTcN+OVWGpre/QWtYqylgbJQTEyRQuAIcwn34xnuzw7shZQtcTp6piJ3Ol50krZ6WGZpy2RgcD4EZWNebhFarVVXCc/g6eNzz44X1ttXT11BT1VE4Pp5ow+MjlukcFoto0ElRoq7RxZ3ux3sAcwCCViq1jd4iVBXe51d5uE1fXyGSeY548mg8mjuAXzoKKouNR2FLHvvxvOPJsbRzc49AO9Y4ORw5BbyKqMOipoITuOqbluTFvN8Yj3g0nuyRwWTu2norqsMOzXapsN2irrfMS6F3Hd4NlZ1BHcR/rK6VtldFcrfTVtOd6GoibKw+BGVyzkcyeXMro/QNPLTaMs0U7S2RtIzeaeYyM4+tRKj/qFYjVvltbvUNpbXV1DjhsUD3k92GkrnPSOmq/VEskNA+EPhhD3ulcQDnhjgF0Veq6lttqqq2vLRTQRF0mRnI7sdc8seKgOySpku1wv94ljbGZpI2NYwABjQD7ox3DCR4aePktjx2tDa7PtDN01DNPXPiqK6fAJa3LY2j6Iz9al1HR01FE6KkhjhjLy8tjGBvE5Jx4lZGFh3O5UdqpXVVxqI6eBuAXyHA8vE+CK1r3yW3Pll73JYd0t1Hd6KSjuNOyenkHvMd9oPMHxCpTWuvqy9VsbLTPU0VHCCN1r90yOyfeJHTGMBTfZlrWO70DbfdKtnylDgB0jmg1AJOMd5AAz5hNN1uNkpTrQO6Mk2fa4kktgfUQwty0SE4LXj5jnAdP2KydB68i1TPLRzU3stbHH2m4HbzXtyASDw5Ejh4qWz0sFRG6OeKORjuDmvaCD5qgW1FboDXFTIylGI5JGMjeDiSnc7I3T5BvHvCN1ZryKzEx7o/wAuhCMr0DCw7RcYLtbqevpHb0E8Ye092eh8RyWaoUZiY7Sgms6DUcWp6C66UgjfN7O6GpdKW9mW5BaHZIPPOMcfrUZr71fqjXum6S92unpaunqcgxnfbM1+WlwPgM+IIVwY4rU1dho6q+0V4nDnVFHE+OEcMNLubvPHD1KlvpmiI1aPhtRwAWNcK2lt9JLU1s7III25fJI4AAKttpeu7larq6z2ndgdHG18tQ5oc73ujc8Bw6+PgoRabfqLXFcGGpqKmNp/CVE7yY4/1E+A+pGePizavXadQx7/AFdRq3VNRUW+mmmkqZN2niaPe3RgDPd3nOMKWy2yi2c2plbVOiq9SVLSKZh4sp+9wHhnmfABTCkttj2c2Cetfl827h8z8dpO7oxvcM8gPPxVK3271d9uk1xryDLLwDRyY0cmjwH7VK3jn1vbX+GP8sOWWSeR8tQ90krzvPe45LieZK/CIi94EREBERAREQEREBERAREQEREBERAU22SWyhuOpS+ucwvpY+0ghf8A8R2fneO7+sKEr70NZUW+shrKOQx1ELg5jh0P7OiNeWk3pNYdStAXpIAJ4D1Wg0ZqWm1NaG1cRaydmG1EOeMbsfYeiyNTVtqpaJsN7qxS01W/sQ8ymPJIJxvA8OAPFQ4M1mLdMoHtD2i9iZLTp6YGXJbPVN4hne1nj3np58qlI3s73vZznPXzUw1/o5unJIqu2OdNaZyAx+d7sj0aT1B6FQ/rhS7XGpSKexahtFXtB0PZ5aeta2rtzXQvjkHCRwAGSRyOAOnUrLotE1DdmVbbauHsrlJI+oZunJa9h9zj4gfArS7Fbv7Peau0yn8FWR9rHk8pG4yPVp/wqY3K/wA+obtJp7TVWyIMaTWXAEHcYDhzYvynZ4Z5BFLLN6WmkeInbc6Kuzb9pegrJMds6IMnb3Pbwdw8x9a2tFQ0lvifHQwRwxueXlkbQ0bx4k+ZVX2HSlBS6tu9ikqK6mlaxlTQ1MFS5jzGcAg9HEO7wVuJf3VWnUdPZbfeYq9k1K+pYblCCfdc0Fu8zB+lzUNF8cbmKz+Wt1zom6svx1DpfLp3PEj4mODXsfjBczPA56jxPeo2y8ahr9U2y06rmqmwyzxxy0jvwQc15wM7mM8T9Sn1Hra5NqKyluWnKt76GURVEtucJ2tJAcPd4O5EcgVB6qrbqvaxQzULZBCyeAjfYWuDYvfcSDxHEEIs4ptMTF48R5XNbLZQWunEFvpIKaMD5sTA1ZnALzhyTI6I525l6qw26U4da7TU4/F1L4/RzCf8gVkVtVFRUktTUO3YYWF8ju5oGSVC9sMQqNEvlYd7sp4ngjuJxn4FIb+NOstZ/LN2V1An0Rb8HPZb8fwcVK5o2yxuje0Oa4EEHqFANik/aaWnh/kKt4/SAd+tWEiM8dOW0flQmttA19iqZam3U81VbHOLmGNhc6EE53XAccDv+KihmzQNpACXCd0u74loH6l1KSvl7PB2nadlHv8A5W4M/FNrFOdMV1aNqQ0LoGuvFXFWXWmlpbcx28Wyt3Xz+AB5N8fh3q9GNaxoDQAAMABe9OKJMq+bNbLbcoVtfn7LQ9UzOO2liZ/iB/UsHYlT9npaqnI4zVrz6Na1v2gr5bb6jcsNBT/ytVk+jSt5srp/ZtCW0dZQ+b9J5d+tPhtntxf5ylihe0/TddqOzwR21wMtPN2pic7AkGCMZ5Z45U0yOS/D3sYMvcGjxKK1LTS0THlyq5pY9zHDBaSCPEHit3pDT1zv90i+TWER087HTVGQOx45B7ycA4wrT1hs4g1Fc23ClrvY3uaGysEQe12Oo4jB+3gpdp+0UtktkFDRj3ImBpecbz8dSfip26WTmx0e3zLYN4hQ3as+ig0hVy1UEckxxFAXNBLXuPAjy4n0U0VObb7r2twobSwktgaZ3tbz3ne636s/FQpcavVlhKdjb3u0awPJIbUytZnuz/8AanS0ei7UbNpi3ULwBMyEOlx/KO4u+skLeKGGW0WvMwIiI1o7qDR1k1DVw1VzpXPmiG6HMeW7w7nY5hbNsVBZradxsNJRU7C52MNaxoHErMOFS+1TWPylUPsltlHsUJxUPH/FePojwH1nyUw3YqXzTFN9mg15qmXVF2L2Ett9P7tNEfrefE/UFGkKKXbpSKVitRERGYiIgIiICIiAiIgIiICIiAiIgIiICIiDcaV1DU6au8ddSt32EBk8WcCRnd5jmFZO0W212s7Ta7jp50dTRxtfIYg4B73OxgjPDIwRjxKp5TLZvrD9zdf7LWvPyXUO9/PKF35Y8OWfj04lXPinfq08wsDZ5p5v7hTQ3aCQtq3SF8EoI3G5wBg/N5KqNW6cqNM3V1HM4yQPy+nmxjtGftHDK6MlqYIaZ1TLKxkLW77pHO90N78qvrjTT7TY3Gle2lstM53s9Q5gdJUyjIyB9Fg+JRS4+e0Xm1vHyp2mm9nqGSkyta05eYnbrt36QB8sq9rlT0dmorDd7NExlFSPZG5sY4Op5sNJ9CWOz4ZVHXGhqLbXT0VbGY54Hlj2+PePA8we5Wrom+2+p2cVlHe5mMp6NjqaQvPONw93A688AeCLPLrutbR4bnXjRarpY9Tx/No6jsKoj+Rk4cfI49Ur7jRVWt9L1lvq4KlkoqadzoZA4AGPf6eLAtZRWC76vssDtSSvgpWU25S0jctdK/dwJpfHqG9F9tJadseodO0tRW26OC505dTVEtPmKRskZLSctwRnGfVQp+yK957x2/uV92Gm7xrWrIDnmKnqIWd7zGI2j9Jq1Gx2gEcNz1LXuyG7zGyuHMD3pHf67itPtSs0dhqKZlPcq6qdVs96Kqk7TDY/mje5ni48yVOblb/kTZHV0cfB0dsf2h7y4ZefXJUts6jHGv8A60q7U2tLrfq988dXUUtKHHsYIJTHutHIkjiSVa+ym8V940wZLi50kkFQ6FkzucjQAcnxGSPRRDSWyz2+jgr75VyRRytD20kIw7dP5Tjyz3AeqtKmjoLRFSW2mayBpBZDE3qAMn/78VDHk5MXR0Y/hGtpmq6OzWiot2e0r6yBzGRAZ3WkYLndw54UetlZJetjdwhmO/LRRuiDjxyGYc3/AAkLW7RtI3+s1RPXUVHJWU9QG7j4yPcwMbpyRhTXTmlpLLoKrtlQWuqamGV825xAe5uMDvxwCGsdMVZie+0c2E1OWXmlPJropR6hzf8AKFarnta0kkAAZOSqU2HVGNQVkefx1EHY/NcP/kVbFysVPdR2dxmqJ6c86ftN2N3g4NxvDwKMOXEetO2ndqW43ioli0rQU9RTROLH3CrkLYXOHMMAGX+JyB5rWfvgVH7kPlb5Ph9t9uFCI+1PZdpnG9vYzuqVXe3Wj5Ckpq+lh+TYI94xbuGsa0Hl3Kn6bXVEZRa57LSN0w47vsePejGfxhd1OeOPr4IYqRk8V8LIbqW5WmeJmqqGngpZnBrLhSSF0IceQeCMszyByQpY14c0OactPIhYFBabbT2oUNLSxNont4xbuWuB78818rdYaa1AMtsk9PAOVO2TejaO4A5wPJGi01nwrbbtU4ntVPnlHLKR+iP1lWVpWmFHpu2U4GBHTMGP7oVSbYZDVa3pqQHLWUsTMeLnuz9W6rrgZ2UEcY+g0NHoEb83bDSEZ2harGl7SHwtY+uqSWU7HHgO9x8B+xUNdbjWXioM90qZKuQ8u1OQPIch6KVbXq/2zWckQOY6OBkIGeG8cuP3gPRQtSv8XDWmOLT5ltLBqK6aenEtsqXMYOcDiTG4eLeXwXQelr5BqCzQXGBu72gw9mc7jxwcPiuaFcWw0y/JF1D89kKsbnnuDP6ka+dir0dceVlSPDGOc4gNaMknoqFsLXax2l+0ybzoX1DqnHdCzG4PuZ8SrP2n3f5J0lVGN27NVYp48c8u548gCVG9iFoEVJW3eQe9UOEEXg1vE/En6goVsPsxWv8AfZaABX6Xi9UKYvEUZ11qqLS9qdLhslZL7tNCT84958BzP/dGVazadQj+1PWXyVTOs1tlxXzs/CyNPGFh/wAx6Kll9qqomq6mWpqZHSTTPL5Hu5uJXyWTuYMMYq6jyIiI3CIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIiE60LcWXyrodP6hrHut0AzT05OGzvzwY89QByHIqyLjC7TNxdeaNn/hs2BcadjfxZ5CZoHcODh3cei59BLXBzHFrgchzTgg94PRXJpnaPBU6fMdyifUXaPETaaJuXVhI4ED7e7yRz+VhmLdVfDza7Z7fXWiC8xTxsrW7rYccfa2u5Mbjm7jkf8AdfjZ5s89i7K6X6Peqch8NKeLYj0c4dXfYtzo3SHsLorheMSVbd40tKHl8VAxxzuMz3cs/Bfu57QrTatSy2a4NkjbG1maoe8xriM4cOY4Y48efRQr+pfpnFj7piAByUQtY+R9fXKhPCnu8QrYB/6rcNkHr7rvUqVUtVBV08c9JMyaF4y2Rjsg+qjevI3U1HRX6Jv4W0VLZ3eMLvck/wALifRQ0Y/M1+0D2v8Av60tMb/xYgZj1k4/YFbdyoYbjbqignH4GoidE/H5JGCqw22Ubnx2q8we8G5i3hy44c0/UVmaz1jWN0Paa+zTGF9cQySZvzoyGneHXByMKVm1JyY8fT/JZjWtZGGtADQMAeCp6m1rEdp0lXXkiibvUMLukQ3sb3q4cT5dy2OyHU1xuVVW225VUlUGRiWKSU5cOOCM9y0V82ZX2S/1TaGON9HUTOeycvADA45O8OeRk+fBSnHipjvamWe+l2jihGQR3r4Ma2komiR53IYxvPPDgBxP1KpKba9WyXhr5KKEWt8gAZx7VrCfnE8s9cfWoVceG2TfT8NRstxb9oEdKeG6J6f4HH+VX10VDQD5M2u45NF1dnp+Myf8yvC51sdut9TWz57OCN0jsdwGUlY5kbvWfuER2vXL2HR8sDXYkrpW04Hgcud/haR6hUQ7iMEeHNSu/wB1vWsZWVdcaWjpI89iJZRGxgPieLj44Xzl0ZUQ2aK7yXi0topn7jJe0lLS7JGM7neD8FK7x4jBSItOpW9s0uXyloy3ve4ulgaad5PPLOAJ8xg+qlK5+05qG6aLeXwvp6u2SvDpmxSCRp7y0jkfNX7BM2eCOaM5ZI0OafAhRLncnFNL7+JUjqL/AMS2xMh5gV9PHjwa1hP2OV4lwAPcOapHTI+UtsEk/MMqqib0DXNH2hW1qmu+TdN3StB96Glke3xdunA+OElnyY70r+Ic7agrDcL7cawnPbVLyD3jJA+pYC8aN1ob3DGe9eqXYrGo0ea6C2YW35O0ZQhww+oBnfnvccj6sKhbdQvudxprfEcPqZWxA/k5OCfQZPounndhQ0fHEdPTx/otaP2BJUOfftFVO7aro+rvlHa4AX+yx53B9KWTgB54GPVWrpi1MstgoLc05dBC0PcPpOx7x+OVTeio5NW7Q/lCpYdztXVjw76IBwxp8vdHor5HJQr8n2Vri+nq8Qr5zyMijdLI5rWMBLnOOAAoU2HfbvS2O2zXCufuQQtye9x6NHeSudNSXuq1DdprjWOIc87scfSJnRo/1xJW42g6tfqa57sBIttM4iBufxh5F5Hj07goosnX4nH9OOqfIiIi6IiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgLJtlwqrXXw1tDL2c8Lt5ruh8D4FYyIiY3GpdI6S1DS6ktEdbS4a8cJoc8Y39R5dQeoVVa90TqCG7XC7sjFfBUTPlzBnfYDyaW+AwMjPLoo/o7UdRpm8MrIi59O4blRCD+Mb4f0hzHr3roe3V1Nc6GCtopWywTsDmPHUKHKvFuLfdfEsPSlt+SNN22g4Zhp2B2OrsZcfiSthVRQ1dNNTyhro5GmN7Tx4EcR9a+p4N5rnas1ddKTVFzulrq5YzLUv/BE7zHgHdaC08DwAHejRixWzWmYWlbbb8v6JrNN17/8AaqFz6QyE5LXMOYn+rdw/FQDSXYS+26J1GDB20xNO/wDkKgd2e/gR3+qsq2OmotRUc9W1jHXqib225wb7TG3PDxLM+jFp9p+iXXRrr1aIz8oRMHbMZwMzRyI/pj6/gjbivETNLeJ/7avS+nb7ofUbqmaiNwt0zeykmozlzW5yHbh48Oo4+GeSteOVsjGvbndcMjIwq42e7Qo65kdpv8ojr2HcjnfwE3gc8n/b58FZAPcktXI6+v3+Wg1tfKS0WSpbMS+oqIXxwQMG8+RxBHBo447yqs0Ls+uVxr6aqu1O6mt8LmvLZhh8xHEAN7s8yfrV4mJjnh5a0u/KxxX63URjzzjrMV+VC7RALdtJdUZwBLT1J9CP/irvu1Cy6WqqoZXFrKmJ0ZcOmRzVN7cKYN1FDKBxmowM+RI/YrktFR7ZaqOoByJoGPz5tBSW7PP+3jsoy5bNdTUUrhHSR1sbT7kkEoJI8nYIPh9aSWfW8tjhsj7RVmgilMjGdmM548znlkkq/wDC83Qmz9bftuIlQtq2Yair5mtq4YqCmPz3yyAuA8Gtzk+eFeUcTKG3Nij4RwRYb5ALJ3QtXqiq9i05dKnP4qkkf8GlGrJmvmtEWVRscj9r1hX1vPED3ZP9N4/Yprtdq/ZdGTRb2DUTRx+mcn7FGthFNum6znm0RRZ+JX026VY3LTQ5+c6SYjyAb/mT5Wbx18uK/SqPNEKKXUTjZBbfbtVGqe0FlFCZP7zuDf8AMrA2s3f5M0pJBG7E1c8QNA7ubvqB+KwtjFr9j05PXvbiSumyM/kN4D694+qiO1+4vuuqoLZS5kdSNETG98shGf8AIFDlzHq8rv4hJ9ilp9ns9XdJGYfWSBjD/wCmzl9Zd9SstYFkt0dqtFHQQ/Np4Wx5HUgcT6lZxOFCnmv13m0juSp7axrL2qWTT9slPYMOKyVp+cR/wwe7v+HepJtP1l8h0Pydb5MXKob84HjCz8rzPT49FR2SeJJPiTklTC5w+PueuwiIpdQREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBTnZnrE2KvFur5P/Dal3An/AIDz18j1+KgyKWGTHGSs1l1Y0h7QRggjgQo1f9D2O9VDaqamENU17XGaH3S/BHB3R3LrxUT2Uaz7Zkdgukp7ZoxRyvPz2j6BPeOngPBbDbJdpaKxUdNTTPhmqKkEOjduuwwZ5jxwsXGjFemXoidbSbVlK+SzmopWn2mgkZVwBvMlhyWj85u831W3pZo6qmiqIXB0crA9jh1B4hVzsp1Teb7LVUFzeyphpog72hzcP4nAaccDyPHmphpcmmiq7S/INBOWR56wu96M+QBLf7pRjlxzSZpbzCPa42dUl8dJXWzcpbiR7wPCOY/0gOR/pD61EbPrHUOiqwWzUlNPPTDkJTl7G97H8nDrgn1CuvoovtItjLlo+45jDpaeIzxkjiC3icegKbZ4s2/ZfvDe2qvp7pQw11HJ2lPOwPjdjHBZhVc7Erl7Tp2qoXuy+jqMtH9B4yPrDvgrGUNOWnReaqj26wYls1V0xNEf8BH2FTrZ7P7RoqzPzypms/R4fqUb24U/aaboqj+QrW58ixw+3C2GyCo7bRVO3P4maSP4OU/Czfvxqz9SmyIihTFEtqVQabQl1cOcjWQ/pva0/USpaoBtpn7LSDIus1VGMeAy79QRtwRvLWPyxtiEG5p2umx+MrC3zDWt/aohtjqzUayMAI3aaljZjuJy4/UQrC2RQdjoWjfjBmkmkPj+EcB9QCp/WtX7dq27VAOQalzQfBvuj7FK9g78q0/TSr1rHyPbHG0ukkIYxo5lx4AfFeKU7M7X8p6wo95m9DSH2h+e9vzf8WPgpXr36KTaV30kVNpzTkTJCGwUNMN4j+iOKp7ZtSzai1y65VjcmIuq5euHuOGj6/8ACpxtju/sOm20MbsTV8m4QOfZtwXfqHqvxsYtHsWnJbjI3EtfJvD+rbkN/wAx9VDl456MNrz5t2WEOSj+s9T0+mLS6qlw+oedynh6yO/YOZK2d2uNNaaCaurpRHTwt3nOP2ea521VqGq1Ldn1tUS2MZEEOeETM8B59/ikQ18bBOW258NdX1lRca2asrZDLUTPLnvJ693l0A7gvgiKXaiNRqBEREiIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiIP1FI+GVskT3MkY4Oa5pwQRyP+u5XXpK623X1iNDfqeGaupxiaNwwXDpI08xnw5FUksyz3Oqs1zguNDJuTwnhk8HDq0+BRo5GH1K9vK/tI6Ro9LGtFDLJIypeHDteJYAOWeqy65oo7/R1YGGVTDSynxGXMz/jH95e6Wv9LqO0xV9IcEjdkiPzon9Wn/XEYWTe6V1Zbpo4ziYASQu/Jkad5h/SAUOLabdXu8s8cl+Jo2yxPjeAWvaWkHqCvlRVTaukhqGDAkYHYPTvHovuSMc1DDwpnZI91m1ncrNK4jeY6IB3UxuOD8CfirnBVKa53tK7Saa8tYRDKW1DiPpD5sg8wOPqFdEMjJYmyROD2PAc1zTkEHkVMrPJ90xf7RHazAJ9D1xxnsnMk8sOC02w6cusdwgJ/FVWQO4OaD9uVLtb0/tekrvAObqV+PQZ/Uq72FVAbcLxTk/Pihe0HwLwftanwzp341o/K4UXiKFN6qs251G7Q2qnHWV7z6DH61aSpfbnMZbzb6Zp4tpnnHi53D7pUws8SN5oWJoxgt+hLXvYb2dC2R3nu7xXO0kxqZZKhwwZnukI/OOf1roPVE3yZs5riz3XMt3ZsxzBLQ0fWVz3jHAclMLnCjfVb8itzYhbdyhuN0kbxlkEEeerWjJPxOP7qqM8BwHRdCWNkOkdBRSTDHstIZpB1c8jeI8ySjLm29nTHmVZbT6yW/62bbqM75p92kiA4jtHHJP1j4K66ClgtVtgpIsNgpogwE8MADmVS+yW3vu+rpLjWe+6maaiR2OBleTj/N8FvNrOsiN/T9rlAJGKyVp5D+TH6/givlxza1cNfhG9pGsDqOvFLQyn5Lp3e5jlM/8AL8u74qGp5ckR0qUilYrURERmIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiDZWW/wB0sT5HWqsdTmXG+AAQ7HgVtf3wtVfzu7/pM/YowiNc4qWncwkMWuNSws3IrtKxuS7DWNxknJ6L9fu81T/PNR+i39ijiIj0cf8AxhsbvfrpehELrWvqhESY98D3c8+QX3o9V6goaaOmo7vVRQRjDGBww0dwytOiMpx0mNa7N5NrHUs8T4pbzVPjkaWuaSMEHmOS11sudfaZnTWyrlpZXM3HPiOCW88fUFiIhGOkRqIb392Wp/59rf0h+xP3Zan/AJ9rf0h+xaJER6OP/jH9m9/dlqf+fa39IfsWsuFyrrnUipuFVLUzhoaJJDkgDiB9axURMY6VncQ2lZqO911I6krbrVT0zsB0T3+6ccQtWiIyisV7RD1pLXBzeBByFta/U99uNK+krrpUT07/AJ0TyMH6lqf1oiJpE+YbC13y62hsjbZXzUrZCHPEZA3iOWVgOcXOc95LnOJc5xOSSeZK8RExWIncCIiJEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREDmtxp/TF21C2c2mCOVsBAeXSBuM5x9i06trYSB2F54fTi+xyNPIyTjxzaEU/e01X/AORh/wCu1P3tNV/+Rh/67Vf+Anoo2536/J+HP/72mq//ACMP/Xasar0Bqmlbl1qfKBz7GRrsemV0TwXhGU2Rz8n1DlWeGWmndBUwyQzN+dHIwtcPQ8V+F03fLBbb5S+z3OlZM36LsYczxB5hULrTSlTpa5dg9xlpJcmnm3cbw/JP9IfXz8FK5x+VXLPTMalHkREWxERAREQEREBERSCIigFcGmtm+n7ppq2V9QyqFRU0kUsjmVDgN5zQTw5eip9dIaE/iVYv+XwfcCSo829qVjplVustmlVZaWWvtU76ykjGXxvH4WMdTw4OHoMeKg1HTS1tVBS0zO0mnkbHE3OAXOOB6LqdzcjB4g81ztdmt0rr6Z9LGC2hrhLHHyy04O78CQjHi8i94tWfMLBtOyG1x0zTd6upqahw98RP7NjT4Y4n1K1+otkhZE6bT9Y57gMmmqSOP5rh9hz5hTKj1/pmoo21BukMPu5dHMd17fAhYsm03SrHlntsp/pNp3kfHChWjLyYtuNqGnhmpppIKmJ8U0Tt2SN4w5p7iF+FbetKGx63pDXaerYJbvTsz2TTh8zB9EtPHI6fBVG3i0HvUunhy+pXvHdtNMUMN01HbqCqBMFRNuP3Tg4wTwPoraq9kmn5YS2mlraaTo8S7/HydlVdoT+Odl/tI+6V0lhJU+blvS8dMucNXaTr9L1bGVW7NTykiGpYMB/gR0PgtAujdfWqO66TuMDwC5kRliOPmvbxB/13lc4g5APfxSFni5py07+YeoiKVkREUAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgK2thP4i8/nxfY5VKra2E/iLz+fF9jklV5n7M/++VqqHbR9WVelKWhlo6eCY1Ero3CXPABueGCpiqu27fwfZ/7RJ9xRDl8esXyxW3hpv337z1ttAfV/wC1TTRG0Gm1NUuoZ6Y0lc1pe1m/vMlaOZae8dyoZSPZ02Z2trV2HMSkv/N3TlS6OXi4opMw6K5qK7S7Qy7aRrW7uZqZvtEJ6hzenqMj1UqHgsO8kC0VucAezv5/mlQ5VJmtolR2gdFw6thrHy10tL7O5ob2bA7eyM9VK3bG6UNJ+W6rgP5Fi+ewb/crpw+nH91Wq/5jvIqVzkcjJXLNYlytMzs5pIwc7jy3Pfg4/Uv1Rwipraanc4tE0zIy4cwHOAz9aVf++VH9c/7xX1tP8MW/+1w/fapdTv0rS/eapf58qv8AosUP19o+LSTqFsVZLVe1b+TIwN3d3d7vzl0Eqk26/jLJjun/AMihy+PnyWyxEyqxbOxWC6X+Ux2qjfMGnD5OTG+buS2+gNIv1TcX9sXR2+mI7d7eBcTyYD344k9Ar7t9FS0FIyloqeOCCMYbHG0AAJta5PK9KemvlUtDser5GB1feKeA9WQwGT6yR9izJtjbCz8BfZGu/wDUpg4fU4K1+CKNqE8zN9qHvOzDUFujdLTdhXxD+RJa/wDRP6iVCntcx7o5Gua9hLXMcMFpHQjoureChu0DRVNqKifUUrI4brG3McoGO0x9F/f4Hom1jDzp3q6g10hoX+JVi/5fB9wLnGSN8Ur4pWFkjHFrmu5tIOCCujtC/wASrF/y+D7gSWfP/hq3pVA65oaq57RblR0FO+one9m6xg/9NvE9w81fx5LBorTR0ddWVsUQ9pq3h8shHE4AAHlgIo4M3pTMqstOx+slY192ujKckcYqePfcPNxOPqK2UuxuhMX4C81jX45yRsc34AD7VaARGc8vNM72oO/bOr9Yh7VTuFbFF7wlpQ5sjMdd3mPQlQ+WV1RI6eR28+Q7zncPePU8F1YeSqLavoyOma6/2uJsbM/7ZE0YHHlIP1/FTta4/L6rdN0L0J/HOy/2kfdK6SXNmhP452XGf95HP81y6TUS1c/+OP5MC/fwJcP7NJ90rl2P8W3yC6iv38CV/wDZ5Pulcx26lnrqinpKVm/PO5rI295KQ28CYitpl9LfQ1VyrI6SggfPUSfNYwcfEnuHirDtWyCunY2S63OOlz/woI+0d+kcAfAqwtG6XpNMWtkEIbJVPANRUYwZHfsHQKQ8E215ubaZ1TtCsJdjlB2Z7K8Vof3vYwj4AD7VE9SbNr1ZIX1MLmXClYMufAwte0d5Zx+olX2vHAFNtVOZlrPedwoLRGg5NXWyeuiurKQQ1Bg3DTdpvYY12ch4/L5eCkP7zNR//YYv/Yn/APIrOtVppLU6sNFEIhV1BqJGDkHlrWnA6fMB88rPTab83LNpmJ7OdNb6SfpKpo4JK9lZ7Ux7wWw9nu7paPyjnO99Sjis3bp/Cdm/qJvvMVZKYdPj3m+OJkRERuEREBERAREQEREBERAREQEREBW1sJ/EXn8+L7HKpVbWwn8Refz4vsckqvM/Zn/3ytVRXXukXatp6SFtb7L7PIX57Pf3sjHeFKl+SeKxcel5pbqr5VP+82/PG+Dx/wBm/wD2Uv0foW26XkfUROfU1j27pnlxlreoaByypUvMqdtl+TlvHTaTkobtVvTLVpSoga7/AGmu/wBniAOCAfnO9G59cLP1PrSzaeiPtNS2ap+hTQkOeT4/kjxKovU2oa3UlzfW1zsAe7FC35sbe4ftSIbeLx5vaJnwsPYX/u12/rWfdKtN/wAx3kVVewt47O7x8N7fjdjwwVarx7rkljyv37OV6v8A3yo/rn/eK+tp/he3/wBrh++1fW/UE1tvdfR1DHMkjmccHqCSQR4EFfXS1BPctSW2lpmFzzUxyOP5LGuDnOPhgfYpdebR6e/w6aVR7d+Ell8Gzn7itwcQFVW2mLt7npuE8pZnxn+86MKHH4s6zQmuhbOyyaZoqUNAlewSzHHN7uJ/Z6LflG8kc3IPijRaZtbcqU11tEuFTcZ6Gx1LqWkheYzNF8+Ug4OD0HkorQ6r1DQziWnvde52c4nndK13gWuJH6/FXd+99pT+ZYP0nftT973Sn8ywfpO/ap2v05GCtenpfrQOphqay+0vYI6qJ3ZzsHLexzHgRxUlK1tl0/a7E2VtppGUzZTvSBpJ3j6lbNYqN+mbTNfCi9r9nZbtTtrIWhsdeztHDHASNwCfUY9cq1tCfxKsX/L4PuBQvbo0eyWd/UTSD03VNNC/xKsX/L4PuBTKzltNsFJlvlF9c6wptK0TCWdvWT5EMAOM97iejQpOVz/tUrJKvW9c1zju07I4WeADcn63FGHFxRlvqXtTtK1TPP2jK6OBuciOKBu7juO9k/Wphonaa+urYbdf2RslmcGxVMYw0uPIOHQk9VUJXh6kE55jpgrLTqX4uK0a06vBB5L41tNFWUstNUMD4ZWFj2nkQeCxbBUurbJQVUhy+anY9x7yWjKzzyWLiTusud9LUUls2i0FBMcvpq90RP5WA7B9Rg+q6KVKXGEQ7bId0Y36xj/jH/2V1pK3y56umfwwb7/Alf8A2aT7pVQbErS2rvFRdJW5bRwhkWeW+/mfMAf4lb9+/gS4f2aT7pUE2GxNbpqrkaPefU8T5NCQxx26cF/6LIC199u9JY7ZPca55ZDCOOBkuOcAAdSTwWwVWbcqt7Ka2UYJDHyOkcO/AwPtKNOGnqXiqNXnafqCtmebdI23wE+41kbXvHmXZBPosrTu1S60dRGy+btbSkgPkYwNkaPyuHA+WAq/RS7M8bFMa06noqqGrpYqmnkEkUrQ5jxycD1X3UC2L1klVpF8MnEUlY+GMk/RLWvHw3yPRT1Q4uSvTeaqd26/wpZv6ib7zFWaszbr/Clm/qJvvMVZqYdnifswIiKVgREUAiIgIiICIiAiIgIiICIiAra2E/iLz+fF9jlUqtrYT+IvP58X2OSVXmfsytVV5tiu9ytFvtr7XXTUj5ahzXuiIy4bpOOKsNVdt2ePYLOzqaiR3wZ/3UQ5nGiJyxEq9/dnqc//AM9W/pN/YsWp1De6sFtVd6+Vp5tdUOx8AVrUUu1GOkfB1JPEnqeaIiM0u2X36Ox6maKl4bTVrRBI48muz7h+OR6q/shw8CuXaO21leyZ9DA6oMIBkjj954afpbvMjvxy6qWab2k3iwRto69ntlMwYa2fLJYx3B3UefxSYc/lcf1LdVZ7rgvWmLLfdw3W3xVD2DDZDlrwO7eBBx4JadP2XT0bzbaKCka4fhJObj5uPE/FRGi2nTXPDLXpm41MxHAMILfUqKa0v2sZKimlvlult1vjmZI2njwWSFrgcOeCcnhy4eXVQq1wZZ9szr+q8ByVPbarkwX2zQwuBmo2moePycuaW/cP1L24bYKuSncy32yKKYjg+WTeDfHA5quK6rqbhVSVVbO6aolOXyP5uP6lLfxuJetuq8OpIJGzRMljOWPAc094K/byd07vPHDKheyvULLzp1lNLIDWUIEUrTzLfou8iBjzBU0UKOSs0tNZ+FKS7VtS080kFRR29s0TyyRvZv4OBweveF+P329Q9KW3/oO/aphrPZtS32sfcLfUCjrH8ZAW7zJD3kdCo7btj1UZwbpc4uwz7zadh3nDwJ5KV+luJNdzDGZtU1O9odHbqZ7Tyc2nkIPqCv1++jqr+a4P/bS/tVu2+gprdRw0dJE2OCFgYxoHIBfd4Y0Fzg0AcSVDRObDvtjc86v1ZddSMpYrrTRU4gcXsDI3NJyMdVdmhP4lWL/l8H3AqS1/e23/AFRU1ELgaWH8DB4tbzPqc+mFduhf4lWL/l8H3AktvKiIxU1Gm9Koja7a5qLVslYWHsK2NsjH9N8Ddc36gf7yvhavUNioNQUDqK5Rb8Z4tc04cw97T0KKvHzelfqcyjivpTU01ZUxUtLGZZ5nBkbBzLjwCtCo2OuMxNLeQISeAlhy76ipXo/QNt01L7UHPq64jAnlGNwdQ0Dlnv5qdulfm4or7fKSWqkFDbaWkByIImxg9+BhZTl6tffrnBZrTU3CpPuQMLsflHoPMngsXI72lUFTUCp20xvachle2MekeD9eVeAXN+ippajXVpqJ3b001aZJHDq5wcSfiV0gplb5lemax9QwL9/Alf8A2eT7pUA2FVIdY66m4B0c4d4kFo4/UVYF9/gSv/s0n3SqP2SXpto1LHBM4Np6+MQuJ6PHFh+JI/vBIRip1YL/ANF+quNtVrkqbJT3GNhcKOQ9pgcmO4Z9Dj4qxui/E0Mc8T4pWNfG8Yc1wyCO4qFfHf07xZyqvCQBkq47vsjoKid8tqrZKNruPYvbvsb5Hn6LJ0/srtdtqY6m41ElfJGQ5sbhuxgjkSOvqsnVnnYtb+Wy2U2iW0aSiFQzcmq5XVL2npvYDf8AC1qmK8aMDHQL1Q5N7dVptKnduv8AClm/qJvvMVZqy9ujmm72hgPvNp5SfVzcfYVWimHa4n7MCIilYERFAIiICIiAiIgIiICIiAiIgK2dhP4i8/nxfY5VMtlZ7/dbIJRaq2SmEpBkDQDvY5cwjRyMc5MfTDpapqIqaF808jIo2Alz3nAA7ySqD2k6mh1Le2OozvUVIx0cLsY3ySN53rgfDxWlul/u93Abc7jUVDAc7jnYb8BwWt5ppp4/E9Keq07kRERdEREGVa7jVWqvhrqCUxVMRy13PzBHUHqFemjtU2jVdO0SRU8dya3M1M9oJ82k82/6KoFfqGWSCZs0EjopWHLZGHDmnwKK+fj1yx9S6pjjjjbuxsa1vc0YC02tG0TtK3QXLHs3sz94nmDg4x45xjxVPUG03VFFCI/aKWqA4B1TAXOHq1zc+q1GoNV3rUWG3SqDogciGJu4wHvx19coo04WSLd2kGcDe5444XqIjrNjp++VunrlHX294D28Hxu+bK3q0/t6K+tLaztGo4WimnbFV49+llOHjy7x4hc6I0lrg5pc1wOQ5pwR5FJVs/Grl7/Lq0FernCh1tqahaGwXictAwGygSAfpArLftG1W9m6bpj82CMf5VGlKeBk+4X9VVMFLA6apljiiaMl8jg0D1KqLaDtEZcIJLXp+Rwp3+7PVYI7Rv5LOuD393JQC5Xa5XV2blX1FV1xK/LQfAclhqdLGHhRWd3nYMdBjwXSGhP4l2L+wQfcC5vUkoNd6lt9FBRUlxDKenjbFEzsIzutaMAZLc9E02cvDbLERV0STgKO0WrKGXUldYamRkNZBIBEHHHbNLQeHiM8lUH74+q+XyoMdf8AZov/AIqO3K4VVzr5a6tl7SplcHOeAG8QABjHLkE0qU4Ntz1OowUyFz3a9oeprZG2KKuZURN5Mq4+0x6gh31rYSbV9TvaWhtsjz9JlM7P1vKjTCeDlifhd1ZV09FTPqKuaOGGMZfJI4NaB4lUZtG1p+6WpZSUG822QO3hkEdu/wDKI6AdB457lHLxfrrfHh91rpajHEMPBg8mjAWuU6W+PxIxz1W7y3uhP452X+0j7rl0jlcsUFZPbq6GtpH7lRA7fjcRnB49Dz5qT/vl6s/nGP8A9sz9iI5PHvltEwvG/H/wSv8A7NJ90rl6LIYwgkEYIIPJSyfaLqiogkgmr43RyNLXD2dnEHh3KKAAAAcgMBGfFwWxRMW+V1bPdfwXKnhtt5nbHcWjcZK87raju8A7w68x3KxAeA4hcpdykFp1tqO0xtipLlI+FvKOoaJGj48frTTTm4O53R0dlY1wrqW30klVXTxwQRjL5JDgAKjpNqWqXs3RLQs/pMpjvfW4j6lGrve7pepBJda2apI+aHHDW+TRwCjTVTg3mfdPZfujNSx6nprhVwRblPBWGCHPAuaI2O3iOnFx9MLdVtZTUNNJU1k0cMEYy+SR2AB5rnGy6pvVippKa1Vxp4ZJDI5oja7LsAZyQejR8F8LtfbtenA3SvnqADkMccNH90YCaZzwJm/nsz9c6g/dJqGWtjBFOwCKAO57g6+pJKj6IsnRrWKVisCIihkIiICIiAiIgIiICIiAiIgIiICIpBoXT7NS6giopnubTMaZZ93g4tH0R3ZPVGN7RSJmUeJA/wDteq4qi+aZoLpLY6TSs1XT07xFUTUtH2gjJ7wASoXriw0EOoKGDTsczIrg7cZDLDJGI5N5o4bwGW+8OXLj4I0Y+R1W6bRpEMgEA8ynjkYVw3V2l9nVLSUUlq+Ua6Zm857mtLnAcC4l3ADPIBa3Vlkst+0j+6rT1MKSSIF0sbGhocAcODgOG8OhCIryt6mY7T8qwJA4cvMoDkK4tMUcEGzmjr6XTtPdq7iBA4Na6T8IQfeIPIcfRazaXbLbHpe23M2yK13SZ7GupWEZwWneaccDjv8A2oV5UTfp0rAEHIBBI5jPJMjJGRwVkagt9HFsftFZHSwtqpOw3pgwB7s5zk81I9M0VJDs9tVfHp6K6Vbom5iYxm+/Ljk5d8U2W5URXq186UpkdOI+xMjoQp3q+obUX6yU8um/kdwmaXRu3D2rS8D6PTmpvqmts1hu9FQDSja01Qzv09O07uXbvLCbLcmY128qNzwzxwvfJWJtA05brPrGwmgjZHBWzx9pTj5oIlYDgdxDuXh4qQbSNDQVtAbhYqaOKspYyX08LQO2Zz5D6Q447+IQ/VV9s/am+B5LwkDi7gO88FZWt6Chp9m9krIaWGOdxjLpGRjedlhJ49VsKe3WDQOmqO4XigbX3KrAGHNDjvEZ3RngABzKJ/UxrcR3mdKlaQ7kRjzXqtuS32DaBpysrbTQC33GkyMBoBDsZAOODmkKowcjPL9SNmLL6m+2pg3mjm4DzK94EZByrkq62yab0Vp+41Vip6x9XBAw7sbA4uMW9vEkeB+K0+p7NY7/AKMdqmwUoo5YcumhAADgDh4IHDI5gj9abaq8rfmO3hWWfEfFMg9Rnuyrm0fRUkezmjuDLBHdazLvwQYzfkzKRnLu4cfRQ3aLViT2GF+mzZJRvvAd2eZRy+j3FNppyOq/REIYimGyilp63WDYauCOaL2WR25I0OGQW4OCtNq+KODVV2hgY2OJlU8NY0YDR4BG2Mm8nQ1HQnuHcnkeGVMdltijvOpBLVRtfSUTDJI1zchzjkNB+JPot7tOs9uqbBRX6wwwshjkdFL2LQA5pOM8O5w+so125ERk9NWK8yOqOdutLsE4GcDqrflodPbOrHSy3K3i4XOo4ZLQ4ucBl2M8GtGQjPLl9PURG5lUAII4HPiEyO8fFWTqV+j9R6dfc7c6mtl1jBcKZxax0hHNpA556EL9U9vojsamrjSwGqG9ifsxv/jMc0YfqO0bjvvSteuBz7l5npkZzyVkxW+iOxiWs9kh9qDjibcG+PwoHPnyX00Db6Kp0FfZ6mkhlmYZN2R7AXN9zoURPIiKzOvE6VlkDGTjKAgjIKtPZbT24aNudwrrfBVup5Hu/CRguLQ0HGSsqzP0rtCpqqijswttbEzfjewNDmg8nAjnx5gptFuT0zMTHaFRrzIOMEHgt9pywS3DV9PZpwD2dQRUEctxhy744x/eCsnXlktFy0zdX2alp2VVplzJ2MYafdaHPbw5+67PojK/Iil4r9qYyARngD1KBwPJw+Kn+xyhpK6917KynhqI20rXNErA4D3uYyt/QXvSl/v0unqnTkNO4ySQsl3W4c5hI4EcRnBwiL55rea63pUSLc6usn7ntQ1Vua5z4mYdG53MsIyM+PT0WmRYraLRuBEREiIiAiIgIiICIiAiIgIiICIiApHoLUEWnNRRVlQHGlkYYpt0ZIBx72PAjko4iMb1i8TWV40tDbqe61l9s2qaelpK5zZKlmI3glufmuJ93mehUb2tXmCSt0xcbVUxVBhM0zCx+RwdC5ue4HCrDcYXbxY3Pfjivd0AHAGTzwMZRWpxdWi028LivVFp/aLBSV8F5ZQ1kUe69j8EgE53XNJHI5wR3rX6ru1m01o06XstW2tqJgWyvDg7dBOXucRwBPQD9Sq1zWuB32td5hOQw0AeQwia8bUxEz2j4XRpeR1Rs1o6K33yntdcc4mc5pLAJCSN0nqMj1WHrytooNBx2y53Wnu1432GOWPdDs7+S7AzgBuR4+qqJzGOOSxp8wvWta0e60Dy4IiOLq3Vv52szUNVTP2OWanZUROnb7PmIPBcOfRSDTj/AGvZvaqKhv8ABaawRNPb5a9zMOORukjmqTDW5zujPf1XhY0nJa0555CaLcXddb+dp3qu3VNFe7LU3DUsd6kfUMbviNrOyaHg9HHh8FYF71zT2vVlrt/a08tuq43CWZjwTE/ew3JBxjoqEDGgcGgZ5gDgV6AGjDWtA8kTbixaIi0+E+10yRu0S31clwZV0s1TTuhe17SImiUZYccsc8+K3mt9XOsWuKCut80dTTGjDKmKN4Ie3tHd3JwySFUgY1rSGgDPPhzXoAHAcB4DCJ/T1nXVPiNLa2sXO3XPR1E+31MMsclQ1wax4yBuu6cwv2yqsm0PTNDQ1txZQXOk3XYcRkODcEgHG8CO79SqHdAyQ1oJHEgL1wDhhwyO4oxjixFYiJ7wt5lRZNnemq2kpLkyvudVkgMIy52MA4BO60eJVQgYZuo1rWjDWgeQwvUbsWLo333MrluNpodU6H05R/LlJROpoIJXF+6/OId3dxvDHP6lqdT3Ozaa0Q/S9mrWV1TPls0jCDgOOXuOOAJ5AfsVXOYw/Qbx58Oa94DkAPJNNNeNrzbtva6NJSe07NKOho79Daq0lxbOS1zmATEn3SRzGR6qF7RLZV0jKOpr9Tx3uRxdGzETWGIczyceahRjYTktaT5I1rWkkNAzzIRlTj9N5vEppsknhp9ZNkqJY4mCklG9I4NGct71v7/oGkud3rrk3VVBEKiV0vZdiHFueme0H2KrS1rvnAEeIX57Jn5Dc+SMrYZm/XW2lu6KrLVpHQs9wrpWTTVspkkghe3tC0+6xoGe7jx7yszTt40rf9P3HT9BAbXS9kQI6ktbxfn3m+8eRAKpjdAOQAHd+OKOaHDDgD3ZCNc8WJmZm3fy/Usckb5IZHBsjHFji3iA4cOHeMjmrfqprHtKsdGyoubLfc6U7xa7GQSMOGCRvNOM8D0Cp/7PsXjmtcMOaCPFG3Ji69TE6mFl6iptJ6W0zJb6f2a53eQECbAc9pPNxxwaB0C/dPVU37y09MaiHtzvfg98bx/Cd3NVi0BowAABywm6N7e+ljnjijCMHjc777WjoivtN80PPpa4VzKKoJduOcQN4F28CM88HosypdadC6JrrWy6xV9dVh+61gAJc4Y+aCcNHiVUbveGHAHzC/Ia1vBrQB4DCIni+7z23vS2NlxpJNGXWgnraemdUyPjaXuA3QWAZwTxX30/R6f2dQVVwqL7BX1ksYY2OINBIHEBrQXHj35VQFjXfOaCemQvWta0YAA8giLcbcz7u0rR2Z1dHSsvmqrtPDHNK5+7Fvje3R7zsDnzIHjhbfSOsdL1l0qqSkopqCSu3pZpKktDZHDnk7x48SqX3W5yWgnxXpAdkO4g945IX4sWmZmVobOYaSw63vlK6qg9nZEGwyGRoDml2QAc8eBCzLZpqw2HUMuoblqWkl3Z5Zoom7rd1zyf6RLsBx5YVQlrSAMDA5DHBehrR81oA8AibcaZmZ6vLd6xvbdQaiqrhExzYXEMiDue40YBPmtKiIsVrFYiIEREZCIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiD//Z" alt="Gobierno de Puebla">
+    </div>
+    <div class="brandText">
+      <strong>Centro de Control · Alumbrado Público</strong>
+      <span>Alumbrado Público · Dashboard GIS · Puebla, Puebla</span>
+    </div>
+  </div>
+  <div class="topStatus"><span class="liveDot"></span> Monitoreo Tiempo Real</div>
+</header>
+<section class="kpis"><div class="kpi"><label>Total luminarias</label><strong id="kpiTotal">0</strong><br><small>Inventario cargado</small></div><div class="kpi report"><label>Reportadas QR</label><strong id="kpiReported">0</strong><br><small>Parpadean en mapa</small></div><div class="kpi"><label>Dañadas</label><strong id="kpiOff">0</strong><br><small>Requieren atención</small></div><div class="kpi"><label>Tipos</label><strong id="kpiTypes">0</strong><br><small>Tecnologías</small></div><div class="kpi"><label>Capacidades</label><strong id="kpiCaps">0</strong><br><small>Rangos detectados</small></div></section>
+<main class="layout"><section class="mapArea"><div class="mapControls verticalDock" aria-label="Controles del mapa">
+  <button class="styleBtn active" data-style="light" data-label="Mapa claro" title="Mapa claro" aria-label="Mapa claro"><i class="fa-solid fa-sun"></i></button>
+  <button class="styleBtn" data-style="dark" data-label="Mapa oscuro" title="Mapa oscuro" aria-label="Mapa oscuro"><i class="fa-solid fa-moon"></i></button>
+  <button class="styleBtn" data-style="satellite" data-label="Satélite" title="Satélite" aria-label="Satélite"><i class="fa-solid fa-satellite"></i></button>
+  <button class="styleBtn" data-style="streets" data-label="Calles" title="Calles" aria-label="Calles"><i class="fa-solid fa-road"></i></button>
+  <span class="dockDivider"></span>
+  <button class="chipBtn" id="btn3d" data-label="Edificios 3D" title="Edificios 3D" aria-label="Edificios 3D"><i class="fa-solid fa-cube"></i></button>
+  <button class="chipBtn" id="btnFit" data-label="Ver todo" title="Ver todo" aria-label="Ver todo"><i class="fa-solid fa-expand"></i></button>
+  <span class="dockDivider"></span>
+  <button class="chipBtn" id="btnMunicipio" data-label="Límite municipal" title="Límite municipal" aria-label="Límite municipal"><i class="fa-solid fa-draw-polygon"></i></button>
+</div><div id="map"></div><div class="floating"><span><i class="legendCircle" style="background:#12b76a"></i> Encendida</span><span><i class="legendCircle" style="background:#ef4444"></i> Dañada / parpadeo</span><span><i class="legendCircle" style="background:#7a1f3d"></i> Seleccionada</span></div></section>
+<aside class="side"><div class="sideHead"><span class="badge"><i class="fa-solid fa-tower-broadcast"></i> Atención municipal</span><div class="currentTitle"><h2 id="currentId">Seleccione una luminaria</h2><span id="currentStatus" class="statusPill">Sin selección</span></div></div>
+<div class="sideBody"><div class="search"><input id="searchInput" placeholder="Buscar ID, tipo o capacidad"><button id="btnSearch"><i class="fa-solid fa-magnifying-glass"></i></button></div><div class="grid2"><select id="typeFilter" class="select"><option value="">Tipo: todos</option></select><select id="statusFilter" class="select">
+  <option value="">Estado lámpara: todas</option>
+  <option value="DAÑADA">Dañadas</option>
+  <option value="ENCENDIDA">Encendidas</option>
+</select></div>
+<div class="card"><h3>Ficha técnica de la luminaria</h3><div id="lampInfo"><p style="margin:0;color:#7b8798;font-weight:800">Selecciona un punto .</p></div></div><div class="card"><h3>Historial de reportes</h3><div class="history" id="historyList"></div></div><div class="card"><h3>Resumen operativo</h3><div id="summaryList"></div></div><button class="primaryBtn" id="btnGoogle" style="width:100%"><i class="fa-solid fa-route"></i> Abrir ubicación en Google Maps</button><button class="primaryBtn" id="btnClear" style="width:100%;margin-top:10px;background:linear-gradient(135deg,#ef4444,#fb7185)"><i class="fa-solid fa-rotate"></i> Actualizar reportes</button></div></aside></main></div>
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const MAPBOX_TOKEN='pk.eyJ1IjoibWFycXVpbmhvIiwiYSI6ImNsbncydDkzNjA0MDEycWp5Y2hsZzNiZHoifQ.dUzSeWKWWe7R36yohDNb0g';
+const LAMPS=[{"lamp_id": "PUE-0001", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.0465, "lng": -98.20057}, {"lamp_id": "PUE-0002", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04341, "lng": -98.19538}, {"lamp_id": "PUE-0003", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04371, "lng": -98.19511}, {"lamp_id": "PUE-0004", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04408, "lng": -98.195}, {"lamp_id": "PUE-0005", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04437, "lng": -98.19473}, {"lamp_id": "PUE-0006", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04474, "lng": -98.19461}, {"lamp_id": "PUE-0007", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04503, "lng": -98.19434}, {"lamp_id": "PUE-0008", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.0454, "lng": -98.19423}, {"lamp_id": "PUE-0009", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04569, "lng": -98.19396}, {"lamp_id": "PUE-0010", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04606, "lng": -98.19384}, {"lamp_id": "PUE-0011", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04636, "lng": -98.19358}, {"lamp_id": "PUE-0012", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04673, "lng": -98.19346}, {"lamp_id": "PUE-0013", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "80", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04425, "lng": -98.19286}, {"lamp_id": "PUE-0014", "tipo": "ADITMET", "estatus": "ENCENDIDA", "capacidad": "250", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04388, "lng": -98.19298}, {"lamp_id": "PUE-0015", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04359, "lng": -98.19325}, {"lamp_id": "PUE-0016", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04351, "lng": -98.19736}, {"lamp_id": "PUE-0017", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04737, "lng": -98.1967}, {"lamp_id": "PUE-0018", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04724, "lng": -98.19625}, {"lamp_id": "PUE-0019", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04696, "lng": -98.19589}, {"lamp_id": "PUE-0020", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04683, "lng": -98.19545}, {"lamp_id": "PUE-0021", "tipo": "ADITMET", "estatus": "ENCENDIDA", "capacidad": "250", "comentarios": "Censado/Revisado", "circuito": 1, "lat": 19.04655, "lng": -98.19508}, {"lamp_id": "PUE-0022", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04642, "lng": -98.19464}, {"lamp_id": "PUE-0023", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04615, "lng": -98.19428}, {"lamp_id": "PUE-0024", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "80", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04574, "lng": -98.19347}, {"lamp_id": "PUE-0025", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "80", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04561, "lng": -98.19303}, {"lamp_id": "PUE-0026", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04533, "lng": -98.19267}, {"lamp_id": "PUE-0027", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.0452, "lng": -98.19222}, {"lamp_id": "PUE-0028", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04531, "lng": -98.20042}, {"lamp_id": "PUE-0029", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04596, "lng": -98.19178}, {"lamp_id": "PUE-0030", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04613, "lng": -98.1923}, {"lamp_id": "PUE-0031", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04645, "lng": -98.19275}, {"lamp_id": "PUE-0032", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04663, "lng": -98.19326}, {"lamp_id": "PUE-0033", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04504, "lng": -98.19179}, {"lamp_id": "PUE-0034", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04572, "lng": -98.19178}, {"lamp_id": "PUE-0035", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04531, "lng": -98.19192}, {"lamp_id": "PUE-0036", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04967, "lng": -98.19536}, {"lamp_id": "PUE-0037", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04953, "lng": -98.19492}, {"lamp_id": "PUE-0038", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04925, "lng": -98.19456}, {"lamp_id": "PUE-0039", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04912, "lng": -98.19412}, {"lamp_id": "PUE-0040", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04367, "lng": -98.19889}, {"lamp_id": "PUE-0041", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04359, "lng": -98.19874}, {"lamp_id": "PUE-0042", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04345, "lng": -98.19836}, {"lamp_id": "PUE-0043", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.0434, "lng": -98.19871}, {"lamp_id": "PUE-0044", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04767, "lng": -98.19404}, {"lamp_id": "PUE-0045", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04793, "lng": -98.19417}, {"lamp_id": "PUE-0046", "tipo": "LED", "estatus": "DIRECTA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04663, "lng": -98.19287}, {"lamp_id": "PUE-0047", "tipo": "LED", "estatus": "DIRECTA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04693, "lng": -98.19311}, {"lamp_id": "PUE-0048", "tipo": "LED", "estatus": "DIRECTA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 2, "lat": 19.04724, "lng": -98.19274}, {"lamp_id": "PUE-0049", "tipo": "LED", "estatus": "DIRECTA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04703, "lng": -98.19253}, {"lamp_id": "PUE-0050", "tipo": "LED", "estatus": "DIRECTA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04665, "lng": -98.19258}, {"lamp_id": "PUE-0051", "tipo": "LED", "estatus": "DIRECTA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04635, "lng": -98.19161}, {"lamp_id": "PUE-0052", "tipo": "LED", "estatus": "DIRECTA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04485, "lng": -98.19203}, {"lamp_id": "PUE-0053", "tipo": "LED", "estatus": "DIRECTA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04448, "lng": -98.19216}, {"lamp_id": "PUE-0054", "tipo": "LED", "estatus": "DIRECTA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04434, "lng": -98.19254}, {"lamp_id": "PUE-0055", "tipo": "LED", "estatus": "DIRECTA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04445, "lng": -98.19293}, {"lamp_id": "PUE-0056", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.0447, "lng": -98.19324}, {"lamp_id": "PUE-0057", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04481, "lng": -98.19363}, {"lamp_id": "PUE-0058", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04506, "lng": -98.19394}, {"lamp_id": "PUE-0059", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04517, "lng": -98.19434}, {"lamp_id": "PUE-0060", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04542, "lng": -98.19465}, {"lamp_id": "PUE-0061", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04553, "lng": -98.19504}, {"lamp_id": "PUE-0062", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04578, "lng": -98.19535}, {"lamp_id": "PUE-0063", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04589, "lng": -98.19574}, {"lamp_id": "PUE-0064", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.0436, "lng": -98.19498}, {"lamp_id": "PUE-0065", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04374, "lng": -98.19542}, {"lamp_id": "PUE-0066", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04402, "lng": -98.19578}, {"lamp_id": "PUE-0067", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04416, "lng": -98.19622}, {"lamp_id": "PUE-0068", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04444, "lng": -98.19658}, {"lamp_id": "PUE-0069", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04458, "lng": -98.19702}, {"lamp_id": "PUE-0070", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04485, "lng": -98.19738}, {"lamp_id": "PUE-0071", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04498, "lng": -98.19782}, {"lamp_id": "PUE-0072", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04371, "lng": -98.19747}, {"lamp_id": "PUE-0073", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04386, "lng": -98.19785}, {"lamp_id": "PUE-0074", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.044, "lng": -98.19806}, {"lamp_id": "PUE-0075", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04415, "lng": -98.19844}, {"lamp_id": "PUE-0076", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04407, "lng": -98.19858}, {"lamp_id": "PUE-0077", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04379, "lng": -98.19882}, {"lamp_id": "PUE-0078", "tipo": "LED", "estatus": "DAÑADA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04586, "lng": -98.19756}, {"lamp_id": "PUE-0079", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04572, "lng": -98.19712}, {"lamp_id": "PUE-0080", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04544, "lng": -98.19676}, {"lamp_id": "PUE-0081", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04531, "lng": -98.19631}, {"lamp_id": "PUE-0082", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04503, "lng": -98.19595}, {"lamp_id": "PUE-0083", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 3, "lat": 19.04489, "lng": -98.19551}, {"lamp_id": "PUE-0084", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04462, "lng": -98.19515}, {"lamp_id": "PUE-0085", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.0442, "lng": -98.19435}, {"lamp_id": "PUE-0086", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04407, "lng": -98.19391}, {"lamp_id": "PUE-0087", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04379, "lng": -98.19355}, {"lamp_id": "PUE-0088", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04365, "lng": -98.19311}, {"lamp_id": "PUE-0089", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04337, "lng": -98.19275}, {"lamp_id": "PUE-0090", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04755, "lng": -98.20064}, {"lamp_id": "PUE-0091", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04727, "lng": -98.20028}, {"lamp_id": "PUE-0092", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04713, "lng": -98.19984}, {"lamp_id": "PUE-0093", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04685, "lng": -98.19948}, {"lamp_id": "PUE-0094", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04672, "lng": -98.19904}, {"lamp_id": "PUE-0095", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04644, "lng": -98.19868}, {"lamp_id": "PUE-0096", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.0463, "lng": -98.19824}, {"lamp_id": "PUE-0097", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04603, "lng": -98.19788}, {"lamp_id": "PUE-0098", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04407, "lng": -98.19879}, {"lamp_id": "PUE-0099", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04509, "lng": -98.19999}, {"lamp_id": "PUE-0100", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04498, "lng": -98.1996}, {"lamp_id": "PUE-0101", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04473, "lng": -98.19929}, {"lamp_id": "PUE-0102", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04462, "lng": -98.1989}, {"lamp_id": "PUE-0103", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04536, "lng": -98.19838}, {"lamp_id": "PUE-0104", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.0455, "lng": -98.19882}, {"lamp_id": "PUE-0105", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04578, "lng": -98.19918}, {"lamp_id": "PUE-0106", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04591, "lng": -98.19962}, {"lamp_id": "PUE-0107", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04619, "lng": -98.19998}, {"lamp_id": "PUE-0108", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04507, "lng": -98.20029}, {"lamp_id": "PUE-0109", "tipo": "ADITMET", "estatus": "ENCENDIDA", "capacidad": "400", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.0447, "lng": -98.20041}, {"lamp_id": "PUE-0110", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04441, "lng": -98.20068}, {"lamp_id": "PUE-0111", "tipo": "ADITMET", "estatus": "ENCENDIDA", "capacidad": "400", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04411, "lng": -98.19178}, {"lamp_id": "PUE-0112", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04469, "lng": -98.19167}, {"lamp_id": "PUE-0113", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.0436, "lng": -98.19193}, {"lamp_id": "PUE-0114", "tipo": "ADITMET", "estatus": "ENCENDIDA", "capacidad": "400", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04468, "lng": -98.1919}, {"lamp_id": "PUE-0115", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04409, "lng": -98.19199}, {"lamp_id": "PUE-0116", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04355, "lng": -98.19223}, {"lamp_id": "PUE-0117", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04608, "lng": -98.19593}, {"lamp_id": "PUE-0118", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04615, "lng": -98.19627}, {"lamp_id": "PUE-0119", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04638, "lng": -98.19652}, {"lamp_id": "PUE-0120", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04645, "lng": -98.19685}, {"lamp_id": "PUE-0121", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04667, "lng": -98.19711}, {"lamp_id": "PUE-0122", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04342, "lng": -98.19917}, {"lamp_id": "PUE-0123", "tipo": "ADITMET", "estatus": "ENCENDIDA", "capacidad": "400", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04919, "lng": -98.19621}, {"lamp_id": "PUE-0124", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04937, "lng": -98.19674}, {"lamp_id": "PUE-0125", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04969, "lng": -98.19718}, {"lamp_id": "PUE-0126", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.04988, "lng": -98.1977}, {"lamp_id": "PUE-0127", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.0502, "lng": -98.19814}, {"lamp_id": "PUE-0128", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.05038, "lng": -98.19867}, {"lamp_id": "PUE-0129", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.0507, "lng": -98.19911}, {"lamp_id": "PUE-0130", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.05088, "lng": -98.19964}, {"lamp_id": "PUE-0131", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 4, "lat": 19.0512, "lng": -98.20008}, {"lamp_id": "PUE-0132", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05138, "lng": -98.2006}, {"lamp_id": "PUE-0133", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05251, "lng": -98.19489}, {"lamp_id": "PUE-0134", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05223, "lng": -98.19453}, {"lamp_id": "PUE-0135", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05081, "lng": -98.19274}, {"lamp_id": "PUE-0136", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05068, "lng": -98.19229}, {"lamp_id": "PUE-0137", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05041, "lng": -98.19193}, {"lamp_id": "PUE-0138", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05151, "lng": -98.1945}, {"lamp_id": "PUE-0139", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05193, "lng": -98.19435}, {"lamp_id": "PUE-0140", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05226, "lng": -98.19406}, {"lamp_id": "PUE-0141", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04938, "lng": -98.19173}, {"lamp_id": "PUE-0142", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04848, "lng": -98.19213}, {"lamp_id": "PUE-0143", "tipo": "ADITMET", "estatus": "ENCENDIDA", "capacidad": "400", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04834, "lng": -98.19169}, {"lamp_id": "PUE-0144", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04889, "lng": -98.19385}, {"lamp_id": "PUE-0145", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04875, "lng": -98.19341}, {"lamp_id": "PUE-0146", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04848, "lng": -98.19305}, {"lamp_id": "PUE-0147", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04834, "lng": -98.19261}, {"lamp_id": "PUE-0148", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04806, "lng": -98.19225}, {"lamp_id": "PUE-0149", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04792, "lng": -98.19181}, {"lamp_id": "PUE-0150", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05198, "lng": -98.19986}, {"lamp_id": "PUE-0151", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05185, "lng": -98.19942}, {"lamp_id": "PUE-0152", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05157, "lng": -98.19906}, {"lamp_id": "PUE-0153", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05144, "lng": -98.19862}, {"lamp_id": "PUE-0154", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05116, "lng": -98.19826}, {"lamp_id": "PUE-0155", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05102, "lng": -98.19782}, {"lamp_id": "PUE-0156", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05074, "lng": -98.19746}, {"lamp_id": "PUE-0157", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.0506, "lng": -98.19702}, {"lamp_id": "PUE-0158", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05032, "lng": -98.19666}, {"lamp_id": "PUE-0159", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05019, "lng": -98.19622}, {"lamp_id": "PUE-0160", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04992, "lng": -98.19585}, {"lamp_id": "PUE-0161", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.0469, "lng": -98.19362}, {"lamp_id": "PUE-0162", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04708, "lng": -98.19415}, {"lamp_id": "PUE-0163", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.0474, "lng": -98.1946}, {"lamp_id": "PUE-0164", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04757, "lng": -98.19512}, {"lamp_id": "PUE-0165", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04789, "lng": -98.19557}, {"lamp_id": "PUE-0166", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04807, "lng": -98.19609}, {"lamp_id": "PUE-0167", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04995, "lng": -98.19183}, {"lamp_id": "PUE-0168", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.0501, "lng": -98.19231}, {"lamp_id": "PUE-0169", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05039, "lng": -98.1927}, {"lamp_id": "PUE-0170", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05053, "lng": -98.19318}, {"lamp_id": "PUE-0171", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05083, "lng": -98.19357}, {"lamp_id": "PUE-0172", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05098, "lng": -98.19405}, {"lamp_id": "PUE-0173", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05128, "lng": -98.19444}, {"lamp_id": "PUE-0174", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05196, "lng": -98.19402}, {"lamp_id": "PUE-0175", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05182, "lng": -98.19359}, {"lamp_id": "PUE-0176", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05154, "lng": -98.19323}, {"lamp_id": "PUE-0177", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.0514, "lng": -98.19279}, {"lamp_id": "PUE-0178", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04779, "lng": -98.19212}, {"lamp_id": "PUE-0179", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04738, "lng": -98.19227}, {"lamp_id": "PUE-0180", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05042, "lng": -98.19491}, {"lamp_id": "PUE-0181", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05028, "lng": -98.19447}, {"lamp_id": "PUE-0182", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05, "lng": -98.19411}, {"lamp_id": "PUE-0183", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04986, "lng": -98.19367}, {"lamp_id": "PUE-0184", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04958, "lng": -98.19331}, {"lamp_id": "PUE-0185", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04945, "lng": -98.19287}, {"lamp_id": "PUE-0186", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04917, "lng": -98.19251}, {"lamp_id": "PUE-0187", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04904, "lng": -98.19206}, {"lamp_id": "PUE-0188", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04876, "lng": -98.19171}, {"lamp_id": "PUE-0189", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05249, "lng": -98.19297}, {"lamp_id": "PUE-0190", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05207, "lng": -98.19313}, {"lamp_id": "PUE-0191", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.05174, "lng": -98.19343}, {"lamp_id": "PUE-0192", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "54", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04927, "lng": -98.20034}, {"lamp_id": "PUE-0193", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 5, "lat": 19.04913, "lng": -98.1999}, {"lamp_id": "PUE-0194", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04885, "lng": -98.19954}, {"lamp_id": "PUE-0195", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04871, "lng": -98.1991}, {"lamp_id": "PUE-0196", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04843, "lng": -98.19874}, {"lamp_id": "PUE-0197", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04829, "lng": -98.1983}, {"lamp_id": "PUE-0198", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04801, "lng": -98.19794}, {"lamp_id": "PUE-0199", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04788, "lng": -98.1975}, {"lamp_id": "PUE-0200", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.0476, "lng": -98.19714}, {"lamp_id": "PUE-0201", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05238, "lng": -98.19157}, {"lamp_id": "PUE-0202", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.0525, "lng": -98.19206}, {"lamp_id": "PUE-0203", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05205, "lng": -98.19223}, {"lamp_id": "PUE-0204", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05168, "lng": -98.19254}, {"lamp_id": "PUE-0205", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05123, "lng": -98.1927}, {"lamp_id": "PUE-0206", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05086, "lng": -98.19302}, {"lamp_id": "PUE-0207", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05041, "lng": -98.19318}, {"lamp_id": "PUE-0208", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05004, "lng": -98.19349}, {"lamp_id": "PUE-0209", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04959, "lng": -98.19366}, {"lamp_id": "PUE-0210", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04877, "lng": -98.19413}, {"lamp_id": "PUE-0211", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.0484, "lng": -98.19444}, {"lamp_id": "PUE-0212", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05234, "lng": -98.20056}, {"lamp_id": "PUE-0213", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05221, "lng": -98.20012}, {"lamp_id": "PUE-0214", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05195, "lng": -98.20019}, {"lamp_id": "PUE-0215", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05153, "lng": -98.20033}, {"lamp_id": "PUE-0216", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05119, "lng": -98.20062}, {"lamp_id": "PUE-0217", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04844, "lng": -98.19665}, {"lamp_id": "PUE-0218", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04861, "lng": -98.19718}, {"lamp_id": "PUE-0219", "tipo": "ADITMET", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04893, "lng": -98.19762}, {"lamp_id": "PUE-0220", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04911, "lng": -98.19815}, {"lamp_id": "PUE-0221", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04943, "lng": -98.19859}, {"lamp_id": "PUE-0222", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04961, "lng": -98.19911}, {"lamp_id": "PUE-0223", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04993, "lng": -98.19956}, {"lamp_id": "PUE-0224", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05011, "lng": -98.20009}, {"lamp_id": "PUE-0225", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05042, "lng": -98.20053}, {"lamp_id": "PUE-0226", "tipo": "ADITMET", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04693, "lng": -98.19324}, {"lamp_id": "PUE-0227", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04738, "lng": -98.19308}, {"lamp_id": "PUE-0228", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04775, "lng": -98.19277}, {"lamp_id": "PUE-0229", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.0482, "lng": -98.1926}, {"lamp_id": "PUE-0230", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04857, "lng": -98.1923}, {"lamp_id": "PUE-0231", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04902, "lng": -98.19214}, {"lamp_id": "PUE-0232", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04984, "lng": -98.19166}, {"lamp_id": "PUE-0233", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04841, "lng": -98.1947}, {"lamp_id": "PUE-0234", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04859, "lng": -98.19523}, {"lamp_id": "PUE-0235", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04891, "lng": -98.19567}, {"lamp_id": "PUE-0236", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04842, "lng": -98.20019}, {"lamp_id": "PUE-0237", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04959, "lng": -98.19959}, {"lamp_id": "PUE-0238", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "100", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05068, "lng": -98.19884}, {"lamp_id": "PUE-0239", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "400", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05185, "lng": -98.19824}, {"lamp_id": "PUE-0240", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "106", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05183, "lng": -98.19176}, {"lamp_id": "PUE-0241", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05237, "lng": -98.19246}, {"lamp_id": "PUE-0242", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04354, "lng": -98.19699}, {"lamp_id": "PUE-0243", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04341, "lng": -98.19655}, {"lamp_id": "PUE-0244", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04679, "lng": -98.19171}, {"lamp_id": "PUE-0245", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.047, "lng": -98.19223}, {"lamp_id": "PUE-0246", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04734, "lng": -98.19265}, {"lamp_id": "PUE-0247", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04764, "lng": -98.19319}, {"lamp_id": "PUE-0248", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04782, "lng": -98.19372}, {"lamp_id": "PUE-0249", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04814, "lng": -98.19416}, {"lamp_id": "PUE-0250", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04578, "lng": -98.19596}, {"lamp_id": "PUE-0251", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04533, "lng": -98.19613}, {"lamp_id": "PUE-0252", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04496, "lng": -98.19644}, {"lamp_id": "PUE-0253", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04451, "lng": -98.1966}, {"lamp_id": "PUE-0254", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.04415, "lng": -98.19693}, {"lamp_id": "PUE-0255", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.0437, "lng": -98.1971}, {"lamp_id": "PUE-0256", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05196, "lng": -98.19786}, {"lamp_id": "PUE-0257", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05182, "lng": -98.19742}, {"lamp_id": "PUE-0258", "tipo": "LED", "estatus": "ENCENDIDA", "capacidad": "50", "comentarios": "Censado/Revisado", "circuito": 6, "lat": 19.05154, "lng": -98.19707}];
+const SUPABASE_URL = "https://qxdnbkflhxwtlgfukfow.supabase.co";
+const SUPABASE_KEY = "sb_publishable_UY9HQKWdAiSbPKqKrUySOw_BQQ1rH-W";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let reportCache=[];
+const STYLES={light:'mapbox://styles/mapbox/light-v11',dark:'mapbox://styles/mapbox/dark-v11',satellite:'mapbox://styles/mapbox/satellite-streets-v12',streets:'mapbox://styles/mapbox/streets-v12'};
+let map,markers=[],selected=null,buildings=true;
+const $=id=>document.getElementById(id);
+function extractLampIdFromReport(r){
+  // Soporta las 3 formas que hemos usado durante las pruebas:
+  // 1) reports.lamp_id = 'PUE-0008'
+  // 2) reports.comments contiene 'LAMP_ID:PUE-0008'
+  // 3) reports.folio contiene directamente 'PUE-0008' (si alguna vez se usó así)
+  const direct = (r.lamp_id || '').toString().trim();
+  if (/^PUE-\d{4}$/i.test(direct)) return direct.toUpperCase();
+
+  const comment = (r.comments || '').toString();
+  const match = comment.match(/LAMP_ID\s*:\s*(PUE-\d{4})/i);
+  if (match) return match[1].toUpperCase();
+
+  const folio = (r.folio || '').toString().trim();
+  if (/^PUE-\d{4}$/i.test(folio)) return folio.toUpperCase();
+
+  return '';
+}
+function cleanComment(r){
+  return (r.comments || '')
+    .toString()
+    .replace(/LAMP_ID\s*:\s*PUE-\d{4}\s*\|?\s*/i,'')
+    .trim();
+}
+function normalizeReport(r){
+  const lampId = extractLampIdFromReport(r);
+  return {
+    id: r.id ? 'PUE-2026-'+String(r.id).padStart(6,'0') : 'PUE-2026-'+String(Date.now()).slice(-6),
+    raw_id: r.id,
+    lamp_id: lampId,
+    failure_type: r.issue_type || r.failure_type || 'Reporte ciudadano',
+    status: r.status || 'ACTIVO',
+    created_at: r.created_at || new Date().toISOString(),
+    lat: r.latitude ?? r.user_lat ?? null,
+    lng: r.longitude ?? r.user_lng ?? null,
+    comment: cleanComment(r),
+    source: 'QR ciudadano'
+  };
+}
+async function loadReports(){
+  const {data,error}=await supabaseClient
+    .from('reports_puebla')
+    .select('id,folio,lamp_id,issue_type,failure_type,comments,latitude,longitude,user_lat,user_lng,status,created_at')
+    .order('created_at',{ascending:false});
+
+  if(error){
+    console.error('Error cargando reportes desde Supabase:', error);
+    reportCache=[];
+    return;
+  }
+
+  // Solo se consideran reportes que realmente puedan relacionarse con una luminaria del inventario.
+  reportCache=(data||[])
+    .map(normalizeReport)
+    .filter(r => r.lamp_id && LAMPS.some(l => l.lamp_id === r.lamp_id));
+}
+function reports(){return reportCache}
+function reportsByLamp(id){return reportCache.filter(r=>r.lamp_id===id)}
+function hasReport(id){return reportsByLamp(id).length>0}
+function unique(arr){return [...new Set(arr.filter(Boolean))]}
+function counts(arr,key){return arr.reduce((a,x)=>{const v=x[key]||'Sin dato';a[v]=(a[v]||0)+1;return a},{})}
+function initKpis(){$('kpiTotal').textContent=LAMPS.length.toLocaleString('es-MX');$('kpiReported').textContent=unique(reports().map(r=>r.lamp_id)).length.toLocaleString('es-MX');$('kpiOff').textContent=LAMPS.filter(x=>{const s=(x.estatus||'').toLowerCase();return s.includes('apagada')||s.includes('dañada')||s.includes('danada');}).length.toLocaleString('es-MX');$('kpiTypes').textContent=unique(LAMPS.map(x=>x.tipo)).length;$('kpiCaps').textContent=unique(LAMPS.map(x=>x.capacidad)).length;}
+function fillFilters(){unique(LAMPS.map(x=>x.tipo)).sort().forEach(t=>{$('typeFilter').insertAdjacentHTML('beforeend',`<option value="${t}">${t}</option>`)});}
+function estatusColor(e){const s=(e||'').toLowerCase();if(s.includes('dañada')||s.includes('danada'))return '#dd6b20';if(s.includes('apagada'))return '#ef4444';if(s.includes('directa'))return '#7a1f3d';return '#12b76a';}
+function lampHTML(l){let qr=reportsByLamp(l.lamp_id);return `<div class="row"><span>ID</span><span>${l.lamp_id}</span></div><div class="row"><span>Circuito</span><span>${l.circuito??'-'}</span></div><div class="row"><span>Tipo</span><span>${l.tipo||'-'}</span></div><div class="row"><span>Estatus</span><span style="color:${estatusColor(l.estatus)};font-weight:800">${l.estatus||'-'}</span></div><div class="row"><span>Capacidad</span><span>${l.capacidad||'-'} W</span></div><div class="row"><span>Lat/Lng</span><span>${Number(l.lat).toFixed(6)}, ${Number(l.lng).toFixed(6)}</span></div><div class="row"><span>Reportes QR activos</span><span style="color:${qr.length?'#ef4444':'#12b76a'}">${qr.length}</span></div>`}
+function historyHTML(l){const list=reportsByLamp(l.lamp_id); if(!list.length)return '<p style="margin:0;color:#7b8798;font-weight:800">Sin reportes ciudadanos registrados para esta luminaria.</p>'; return list.map(r=>`<div class="event active"><span class="dot red"></span><div><strong>${r.failure_type} <span style="float:right;color:#ef4444">${r.status}</span></strong><small>${new Date(r.created_at).toLocaleString('es-MX')} · ${r.source||'QR ciudadano'}</small>${r.comment?`<small>${r.comment}</small>`:''}<small>Folio: ${r.id}</small></div></div>`).join('')}
+function summaryHTML(){const byType=counts(LAMPS,'tipo'); const top=Object.entries(byType).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`<div class="row"><span>${k}</span><span>${v}</span></div>`).join(''); return `<div class="row"><span>Luminarias reportadas</span><span>${unique(reports().map(r=>r.lamp_id)).length}</span></div><div class="row"><span>Total reportes QR</span><span>${reports().length}</span></div>${top}`}
+function selectLamp(l, fly = true) {
+  selected = l;
+
+  $('currentId').textContent = l.lamp_id;
+  $('currentStatus').textContent = hasReport(l.lamp_id) ? 'REPORTE ACTIVO' : 'Normal';
+  $('currentStatus').className = 'statusPill ' + (hasReport(l.lamp_id) ? 'reported' : '');
+
+  $('lampInfo').innerHTML = lampHTML(l);
+  $('historyList').innerHTML = historyHTML(l);
+  $('summaryList').innerHTML = summaryHTML();
+
+  updateSelectedLayer();
+
+  if (fly) {
+    map.flyTo({
+      center: [Number(l.lng), Number(l.lat)],
+      zoom: 18,
+      pitch: buildings ? 62 : 35,
+      bearing: -18,
+      essential: true
+    });
+  }
+}
+
+function add3D(){if(!map.getLayer('3d-buildings')){const layers=map.getStyle().layers;let labelLayerId;for(const layer of layers){if(layer.type==='symbol'&&layer.layout&&layer.layout['text-field']){labelLayerId=layer.id;break;}}map.addLayer({id:'3d-buildings',source:'composite','source-layer':'building',filter:['==','extrude','true'],type:'fill-extrusion',minzoom:15,paint:{'fill-extrusion-color':'#9fb7d1','fill-extrusion-height':['interpolate',['linear'],['zoom'],15,0,16,['get','height']],'fill-extrusion-base':['interpolate',['linear'],['zoom'],15,0,16,['get','min_height']],'fill-extrusion-opacity':0.62}},labelLayerId);}}
+function lampFeature(l) {
+  const reported = hasReport(l.lamp_id);
+
+  return {
+    type: 'Feature',
+    geometry: {
+      type: 'Point',
+      coordinates: [Number(l.lng), Number(l.lat)]
+    },
+    properties: {
+      danada: ((l.estatus||'').toLowerCase().includes('dañada')||(l.estatus||'').toLowerCase().includes('danada')),
+      lamp_id: l.lamp_id,
+      tipo: l.tipo || '',
+      capacidad: l.capacidad || '',
+      reported: reported,
+      report_count: reportsByLamp(l.lamp_id).length
+    }
+  };
+}
+
+function getFilteredLamps() {
+  const type = $('typeFilter').value;
+  const status = $('statusFilter').value;
+  const q = $('searchInput').value.trim().toLowerCase();
+
+  return LAMPS.filter(l => {
+
+    const searchableText =
+      `${l.lamp_id} ${l.tipo} ${l.capacidad}`.toLowerCase();
+
+    if (type && l.tipo !== type) return false;
+
+    // NUEVO FILTRO POR ESTADO REAL DE LA LÁMPARA
+    if (
+      status &&
+      String(l.estatus || '').trim().toUpperCase() !== status
+    ) {
+      return false;
+    }
+
+    if (q && !searchableText.includes(q)) return false;
+
+    return true;
+  });
+}
+function getLampFeatureCollection(lamps) {
+  return {
+    type: 'FeatureCollection',
+    features: lamps.map(lampFeature)
+  };
+}
+
+function loadMapImage(name, url) {
+  return new Promise((resolve, reject) => {
+    if (map.hasImage(name)) {
+      resolve();
+      return;
+    }
+
+    map.loadImage(url, (error, image) => {
+      if (error) {
+        console.error('No se pudo cargar el icono:', url, error);
+        reject(error);
+        return;
+      }
+
+      if (!map.hasImage(name)) {
+        map.addImage(name, image);
+      }
+
+      resolve();
+    });
+  });
+}
+
+// Ajuste de orientación de iconos: si los PNG se ven invertidos, cambia icon-rotate a 0 o 180 en lamp-icons-layer.
+async function setupLampIconLayers() {
+  // Iconos locales: deben estar en la misma carpeta del HTML.
+  // laverde.png = icono de luminaria (encendida y dañada; las dañadas llevan pulso rojo)
+  const iconPromises = [
+    loadMapImage('lamp-red-icon', 'laverde.png'),
+    loadMapImage('lamp-green-icon', 'laverde.png')
+  ];
+
+  let iconsReady = true;
+  try {
+    await Promise.all(iconPromises);
+  } catch (err) {
+    iconsReady = false;
+    console.warn('[Lámparas] No se pudo cargar laverde.png. Se usará respaldo con círculos.', err);
+  }
+
+  if (!map.getSource('lamp-icons-source')) {
+    map.addSource('lamp-icons-source', {
+      type: 'geojson',
+      data: getLampFeatureCollection([])
+    });
+  }
+
+  if (!map.getSource('selected-lamp-source')) {
+    map.addSource('selected-lamp-source', {
+      type: 'geojson',
+      data: getLampFeatureCollection([])
+    });
+  }
+
+  // Pulso rojo SOLO para luminarias DAÑADA.
+  if (!map.getLayer('lamp-alert-pulse-layer')) {
+    map.addLayer({
+      id: 'lamp-alert-pulse-layer',
+      type: 'circle',
+      source: 'lamp-icons-source',
+      filter: ['==', ['get', 'danada'], true],
+      paint: {
+        'circle-color': '#ef4444',
+        'circle-radius': 6,
+        'circle-opacity': 0.35,
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 1.6
+      }
+    });
+  }
+
+  if (!map.getLayer('lamp-selected-layer')) {
+    map.addLayer({
+      id: 'lamp-selected-layer',
+      type: 'circle',
+      source: 'selected-lamp-source',
+      paint: {
+        'circle-color': '#7a1f3d',
+        'circle-radius': 22,
+        'circle-opacity': 0.22,
+        'circle-stroke-color': '#7a1f3d',
+        'circle-stroke-width': 3
+      }
+    });
+  }
+
+  if (!map.getLayer('lamp-icons-layer')) {
+    if (iconsReady) {
+      map.addLayer({
+        id: 'lamp-icons-layer',
+        type: 'symbol',
+        source: 'lamp-icons-source',
+        layout: {
+          'icon-image': [
+            'case',
+            ['==', ['get', 'danada'], true], 'lamp-red-icon',
+            'lamp-green-icon'
+          ],
+          'icon-size': [
+            'interpolate', ['linear'], ['zoom'],
+            12, 0.045,
+            15, 0.060,
+            18, 0.085
+          ],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-anchor': 'center'
+        }
+      });
+    } else {
+      map.addLayer({
+        id: 'lamp-icons-layer',
+        type: 'circle',
+        source: 'lamp-icons-source',
+        paint: {
+          'circle-color': [
+            'case',
+            ['==', ['get', 'danada'], true], '#ef4444',
+            '#12b76a'
+          ],
+          'circle-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            12, 3,
+            15, 5,
+            18, 8
+          ],
+          'circle-stroke-width': 1.1,
+          'circle-stroke-color': 'rgba(255,255,255,.85)',
+          'circle-opacity': 0.95
+        }
+      });
+    }
+  }
+
+  map.off('click', 'lamp-icons-layer', handleLampIconClick);
+  map.on('click', 'lamp-icons-layer', handleLampIconClick);
+
+  map.off('mouseenter', 'lamp-icons-layer', handleLampIconEnter);
+  map.on('mouseenter', 'lamp-icons-layer', handleLampIconEnter);
+
+  map.off('mouseleave', 'lamp-icons-layer', handleLampIconLeave);
+  map.on('mouseleave', 'lamp-icons-layer', handleLampIconLeave);
+
+  startReportedBlink();
+}
+
+function handleLampIconClick(e) {
+  const feature = e.features && e.features[0];
+  if (!feature) return;
+
+  const lampId = feature.properties.lamp_id;
+  const lamp = LAMPS.find(x => x.lamp_id === lampId);
+
+  if (lamp) {
+    selectLamp(lamp);
+    showLampPopup(lamp);
+  }
+}
+
+function handleLampIconEnter() {
+  map.getCanvas().style.cursor = 'pointer';
+}
+
+function handleLampIconLeave() {
+  map.getCanvas().style.cursor = '';
+}
+
+function showLampPopup(l) {
+  const reported = hasReport(l.lamp_id);
+
+  const popupHtml = `
+    <div class="pop">
+      <h4>${l.lamp_id}</h4>
+      <div class="popLine">
+        <b>Tipo</b>
+        <span>${l.tipo}</span>
+      </div>
+      <div class="popLine">
+        <b>Capacidad</b>
+        <span>${l.capacidad} W</span>
+      </div>
+      <div class="popLine">
+        <b>Reportes QR</b>
+        <span style="color:${reported ? '#ef4444' : '#12b76a'}">
+          ${reportsByLamp(l.lamp_id).length}
+        </span>
+      </div>
+      <button class="btnPop" onclick="window.__selectLamp('${l.lamp_id}')">
+        Ver ficha
+      </button>
+    </div>
+  `;
+
+  new mapboxgl.Popup({ offset: 28 })
+    .setLngLat([Number(l.lng), Number(l.lat)])
+    .setHTML(popupHtml)
+    .addTo(map);
+}
+
+function updateSelectedLayer() {
+  if (!map || !map.getSource('selected-lamp-source')) return;
+
+  if (!selected) {
+    map.getSource('selected-lamp-source').setData(getLampFeatureCollection([]));
+    return;
+  }
+
+  map.getSource('selected-lamp-source').setData(getLampFeatureCollection([selected]));
+}
+
+let blinkAnimationStarted = false;
+
+function startReportedBlink() {
+  if (blinkAnimationStarted) return;
+  blinkAnimationStarted = true;
+
+  function animateBlink(timestamp) {
+    if (map && map.getLayer('lamp-alert-pulse-layer')) {
+      const t = (Math.sin(timestamp / 260) + 1) / 2;
+
+      map.setPaintProperty(
+        'lamp-alert-pulse-layer',
+        'circle-radius',
+4 + (t * 6)
+      );
+
+      map.setPaintProperty(
+        'lamp-alert-pulse-layer',
+        'circle-opacity',
+0.45 - (t * 0.35)
+      );
+
+      // Si la capa principal es de iconos, también hacemos respirar ligeramente las dañadas.
+      if (map.getLayer('lamp-icons-layer') && map.getLayer('lamp-icons-layer').type === 'symbol') {
+        map.setLayoutProperty(
+          'lamp-icons-layer',
+          'icon-size',
+          [
+            'interpolate', ['linear'], ['zoom'],
+            12, ['case', ['==', ['get', 'danada'], true], 0.050 + (t * 0.010), 0.045],
+            15, ['case', ['==', ['get', 'danada'], true], 0.066 + (t * 0.014), 0.060],
+            18, ['case', ['==', ['get', 'danada'], true], 0.092 + (t * 0.018), 0.085]
+          ]
+        );
+      }
+    }
+
+    requestAnimationFrame(animateBlink);
+  }
+
+  requestAnimationFrame(animateBlink);
+}
+
+async function renderMarkers() {
+  await setupLampIconLayers();
+
+  const visibleLamps = getFilteredLamps();
+  const source = map.getSource('lamp-icons-source');
+
+  if (source) {
+    source.setData(getLampFeatureCollection(visibleLamps));
+  }
+
+  updateSelectedLayer();
+}
+
+function fitVisibleLamps() {
+  const visibleLamps = getFilteredLamps();
+
+  if (!visibleLamps.length) return;
+
+  const bounds = new mapboxgl.LngLatBounds();
+
+  visibleLamps.forEach(l => {
+    bounds.extend([Number(l.lng), Number(l.lat)]);
+  });
+
+  map.fitBounds(bounds, {
+    padding: 90,
+    maxZoom: 18,
+    duration: 700
+  });
+}
+
+window.__selectLamp = (id) => {
+  const l = LAMPS.find(x => x.lamp_id === id);
+  if (l) {
+    selectLamp(l);
+    showLampPopup(l);
+  }
+};
+function fitAll(){const b=new mapboxgl.LngLatBounds(); LAMPS.forEach(l=>b.extend([l.lng,l.lat])); map.fitBounds(b,{padding:80,maxZoom:16})}
+function initMap() {
+  mapboxgl.accessToken = MAPBOX_TOKEN;
+
+  const first = LAMPS[0];
+
+  map = new mapboxgl.Map({
+    container: 'map',
+    style: STYLES.streets,
+    center: [Number(first.lng), Number(first.lat)],
+    zoom: 15,
+    pitch: 35,
+    bearing: -18,
+    antialias: true
+  });
+
+  map.addControl(
+    new mapboxgl.NavigationControl({ visualizePitch: true }),
+    'top-left'
+  );
+
+  map.on('load', async () => {
+    // GeoJSON NO carga al arrancar. Se carga solo al presionar botones.
+
+    try {
+      await renderMarkers();
+    } catch (err) {
+      console.error('[Lámparas] no se pudieron renderizar iconos, pero GeoJSON seguirá cargando:', err);
+    }
+
+    fitAll();
+    add3D();
+    setGeoVis();
+
+    const p = new URLSearchParams(location.search);
+    const id = p.get('lamp_id') || p.get('id');
+
+    if (id) {
+      const l = LAMPS.find(x => x.lamp_id === id);
+      if (l) {
+        setTimeout(() => selectLamp(l), 500);
+      }
+    }
+  });
+
+  map.on('style.load', async () => {
+    blinkAnimationStarted = false;
+    geoLayersReady = false; // Mapbox elimina fuentes/capas al cambiar de estilo; hay que recrearlas
+    geoLayersLoading = false;
+
+    if (buildings) {
+      setTimeout(add3D, 400);
+    }
+
+    setTimeout(async () => {
+      if (layerMpoVisible || layerColVisible) {
+        addGeoLayers(true).catch(err => console.error('[GeoJSON] fallo en style.load:', err));
+      }
+
+      try {
+        await renderMarkers();
+      } catch (err) {
+        console.error('[Lámparas] no se pudieron renderizar tras cambio de estilo:', err);
+      }
+
+      setGeoVis();
+    }, 300);
+  });
+
+  // Sin carga automática en idle: los GeoJSON solo se cargan bajo demanda con los botones.
+}
+
+document.querySelectorAll('.styleBtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.styleBtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');geoLayersReady=false;geoLayersLoading=false;map.setStyle(STYLES[b.dataset.style]);});
+$('btn3d').onclick=()=>{buildings=!buildings;if(buildings){add3D();map.easeTo({pitch:65,bearing:-25,duration:700})}else{if(map.getLayer('3d-buildings'))map.removeLayer('3d-buildings');map.easeTo({pitch:25,bearing:0,duration:700})}};
+$('btnFit').onclick=fitAll; $('btnSearch').onclick=()=>{const q=$('searchInput').value.trim().toLowerCase(); const l=LAMPS.find(x=>x.lamp_id.toLowerCase()===q)||LAMPS.find(x=>`${x.lamp_id} ${x.tipo} ${x.capacidad}`.toLowerCase().includes(q)); if(l)selectLamp(l); else renderMarkers();};
+$('searchInput').addEventListener('keyup', e => {
+  if (e.key === 'Enter') $('btnSearch').click();
+});
+
+$('typeFilter').onchange = async () => {
+  await renderMarkers();
+};
+
+$('statusFilter').onchange = async () => {
+  await renderMarkers();
+
+  if ($('statusFilter').value === 'reported') {
+    fitVisibleLamps();
+  }
+};
+$('btnGoogle').onclick=()=>{if(selected)window.open(`https://www.google.com/maps?q=${selected.lat},${selected.lng}`,'_blank')};
+$('btnClear').onclick = async () => {
+  await loadReports();
+  initKpis();
+  await renderMarkers();
+
+  if (selected) {
+    selectLamp(selected, false);
+  }
+};
+function subscribeReports() {
+  supabaseClient
+    .channel('public-reports-dashboard')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'reports' },
+      async () => {
+        await loadReports();
+        initKpis();
+        await renderMarkers();
+
+        if (selected) {
+          selectLamp(selected, false);
+        }
+      }
+    )
+    .subscribe();
+}
+
+async function boot() {
+  await loadReports();
+  initKpis();
+  fillFilters();
+  $('summaryList').innerHTML = summaryHTML();
+  initMap();
+  subscribeReports();
+}
+
+
+
+// ── CAPAS GEO EXTERNAS BAJO DEMANDA (GeoJSON EPSG:4326) ────────────────
+// Solo se carga cuando presionas el botón de Límite municipal.
+// Puedes usar rutas locales o URLs públicas de Supabase Storage.
+// >>> SUSTITUIR por el polígono (límite municipal) de Puebla en EPSG:4326 que subas a Supabase Storage o sirvas por URL pública.
+const GEO_MPO = 'https://qxdnbkflhxwtlgfukfow.supabase.co/storage/v1/object/public/geojson/puebla4326.geojson';
+// >>> SUSTITUIR por las colonias/asentamientos de Puebla en EPSG:4326 (opcional).
+
+var layerMpoVisible = false;
+var layerColVisible = false;
+var geoLayersLoading = false;
+var geoLayersReady = false;
+
+function geoStatus(msg, ok) {
+  let box = document.getElementById('geoStatusBox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'geoStatusBox';
+    box.style.cssText = 'position:absolute;right:14px;bottom:14px;z-index:30;background:rgba(255,255,255,.94);border:1px solid #e0c2cd;border-radius:12px;padding:9px 12px;font:700 11px Plus Jakarta Sans,Arial;color:#4a0f24;box-shadow:0 4px 20px rgba(74,15,36,.14);max-width:310px';
+    const area = document.querySelector('.mapArea') || document.body;
+    area.appendChild(box);
+  }
+  box.textContent = msg;
+  box.style.borderColor = ok === false ? '#ef4444' : '#e0c2cd';
+  box.style.color = ok === false ? '#b42318' : '#4a0f24';
+}
+
+async function fetchGeoJson(url) {
+  const finalUrl = url + '?v=' + Date.now();
+
+  geoStatus('Solicitando ' + url + '…');
+  console.log('[GeoJSON] solicitando:', finalUrl);
+
+  const res = await fetch(finalUrl, { cache: 'no-store' });
+
+  console.log('[GeoJSON] respuesta:', res.status, res.headers.get('content-type'));
+
+  if (!res.ok) {
+    throw new Error(url + ' respondió HTTP ' + res.status);
+  }
+
+  const data = await res.json();
+  return normalizeGeoJson(data, url);
+}
+// ── Normalizador de GeoJSON (corrige errores típicos antes de pintar) ──────
+// - Acepta FeatureCollection, Feature o Geometry y los normaliza a FeatureCollection.
+// - Detecta coordenadas en orden [lat,lng] (invertido) y las voltea a [lng,lat].
+// - Detecta CRS proyectado (UTM/metros) y avisa con mensaje claro.
+// - Descarta features sin geometría válida para que Mapbox no rechace la fuente.
+function walkCoords(coords, fn) {
+  if (!coords) return;
+  if (typeof coords[0] === 'number' && typeof coords[1] === 'number') { fn(coords); return; }
+  coords.forEach(c => walkCoords(c, fn));
+}
+function normalizeGeoJson(data, label) {
+  label = label || 'GeoJSON';
+  if (!data || typeof data !== 'object') throw new Error(label + ': respuesta vacía o no es JSON');
+  if (data.type === 'Topology') throw new Error(label + ': es TopoJSON, no GeoJSON. Conviértelo a GeoJSON (EPSG:4326).');
+
+  // Normalizar a FeatureCollection
+  let fc;
+  if (data.type === 'FeatureCollection') fc = data;
+  else if (data.type === 'Feature') fc = { type:'FeatureCollection', features:[data] };
+  else if (data.type && data.coordinates) fc = { type:'FeatureCollection', features:[{ type:'Feature', properties:{}, geometry:data }] };
+  else throw new Error(label + ': no es un objeto GeoJSON reconocible (type=' + (data.type||'?') + ')');
+
+  // Inspeccionar coordenadas
+  let total = 0, latFuera = 0, gigantes = 0;
+  (fc.features||[]).forEach(f => f && f.geometry && walkCoords(f.geometry.coordinates, c => {
+    total++;
+    const ax = Math.abs(c[0]), ay = Math.abs(c[1]);
+    if (ay > 90) latFuera++;
+    if (ax > 180 || ay > 1000) gigantes++;
+  }));
+  if (total === 0) throw new Error(label + ': no tiene coordenadas (¿features sin geometría?)');
+
+  // CRS proyectado (metros): no se puede arreglar en el navegador
+  if (gigantes / total > 0.5) {
+    throw new Error(label + ': coordenadas en CRS proyectado (metros/UTM). Reproyecta a EPSG:4326 (lng/lat en grados).');
+  }
+
+  // Orden invertido [lat,lng] → voltear a [lng,lat]
+  if (latFuera / total > 0.5) {
+    console.warn('[GeoJSON] ' + label + ': coordenadas en orden [lat,lng]; volteando a [lng,lat].');
+    (fc.features||[]).forEach(f => f && f.geometry && walkCoords(f.geometry.coordinates, c => {
+      const x = c[0]; c[0] = c[1]; c[1] = x;
+    }));
+  }
+
+  // Quitar features sin geometría válida (Mapbox las rechaza)
+  fc.features = (fc.features||[]).filter(f => f && f.geometry && f.geometry.coordinates);
+  if (fc.features.length === 0) throw new Error(label + ': quedó sin features válidas tras la validación.');
+
+  return fc;
+}
+
+function geoBounds(data) {
+  const b = new mapboxgl.LngLatBounds();
+  function walk(coords) {
+    if (!coords) return;
+    if (typeof coords[0] === 'number' && typeof coords[1] === 'number') {
+      const lng = coords[0], lat = coords[1];
+      if (Math.abs(lat) <= 90 && Math.abs(lng) <= 180) b.extend([lng, lat]);
+      return;
+    }
+    coords.forEach(walk);
+  }
+  (data.features || []).forEach(f => f.geometry && walk(f.geometry.coordinates));
+  return b;
+}
+
+
+function safeAddLayer(layer, beforeId) {
+  if (map.getLayer(layer.id)) return;
+  if (beforeId && map.getLayer(beforeId)) map.addLayer(layer, beforeId);
+  else map.addLayer(layer);
+}
+
+function waitForMapStyleReady() {
+  // map.isStyleLoaded() falla con edificios 3D activos (composite source en proceso).
+  // map.getStyle() es suficiente: si devuelve un objeto, el estilo base ya está listo
+  // para aceptar addSource/addLayer aunque sigan cargando tiles.
+  return new Promise((resolve) => {
+    if (!map) return resolve(false);
+    if (map.getStyle && map.getStyle()) return resolve(true);
+    // Si el estilo aún no existe, esperar el primer evento load o style.load
+    const done = (ok) => resolve(ok);
+    map.once('load',       () => resolve(true));
+    map.once('style.load', () => resolve(true));
+    // Fallback poll por si los eventos ya pasaron
+    const t = setInterval(() => {
+      if (map && map.getStyle && map.getStyle()) { clearInterval(t); resolve(true); }
+    }, 80);
+    setTimeout(() => { clearInterval(t); resolve(false); }, 10000);
+  });
+}
+
+function removeGeoLayersIfExist() {
+  if (!map) return;
+  ['sng-col-label','sng-col-line','sng-col-fill','sng-mpo-line','sng-mpo-fill'].forEach(id => {
+    if (map.getLayer(id)) map.removeLayer(id);
+  });
+  ['sng-col','sng-mpo'].forEach(id => {
+    if (map.getSource(id)) map.removeSource(id);
+  });
+}
+
+async function addGeoLayers(forceReload = false) {
+  if (!map) return;
+
+  const styleReadyNow = await waitForMapStyleReady();
+  if (!styleReadyNow) {
+    console.warn('[GeoJSON] estilo aún no listo; reintentando sin romper flujo');
+    geoStatus('Mapa cargando estilo… reintentando GeoJSON', false);
+    setTimeout(() => addGeoLayers(forceReload).catch(err => console.warn('[GeoJSON] reintento pendiente:', err)), 700);
+    return;
+  }
+
+  // Regla clave: no confiamos en banderas. Validamos contra Mapbox.
+  const alreadyPainted =
+    map.getSource('sng-mpo') &&
+    map.getLayer('sng-mpo-line');
+
+  if (alreadyPainted && !forceReload) {
+    setGeoVis();
+    geoStatus('GeoJSON activos en el mapa', true);
+    return;
+  }
+
+  if (geoLayersLoading) {
+    // Si hay una carga en curso, espera y vuelve a validar. Evita que se quede bloqueado.
+    await new Promise(r => setTimeout(r, 350));
+    const okAfterWait = map.getSource('sng-mpo') && map.getLayer('sng-mpo-line');
+    if (okAfterWait) {
+      setGeoVis();
+      return;
+    }
+  }
+
+  geoLayersLoading = true;
+  geoLayersReady = false;
+  geoStatus('Cargando GeoJSON: municipio y colonias…');
+
+  try {
+    const mpoData = await fetchGeoJson(GEO_MPO);
+
+    const styleReadyAfterFetch = await waitForMapStyleReady();
+    if (!styleReadyAfterFetch) {
+      console.warn('[GeoJSON] datos listos, pero estilo no; reintentando pintar capas');
+      geoStatus('GeoJSON descargado; esperando estilo de Mapbox…', false);
+      setTimeout(() => addGeoLayers(true).catch(err => console.warn('[GeoJSON] reintento pintar:', err)), 700);
+      return;
+    }
+
+    // Al refrescar estilo, Mapbox elimina fuentes/capas. Rehacemos todo de forma limpia.
+    removeGeoLayersIfExist();
+
+    const beforeLampLayer = map.getLayer('lamp-alert-pulse-layer') ? 'lamp-alert-pulse-layer' : undefined;
+
+    map.addSource('sng-mpo', { type: 'geojson', data: mpoData });
+    safeAddLayer({
+      id: 'sng-mpo-fill',
+      type: 'fill',
+      source: 'sng-mpo',
+      layout: { visibility: layerMpoVisible ? 'visible' : 'none' },
+      paint: { 'fill-color': '#7a1f3d', 'fill-opacity': 0.16 }
+    }, beforeLampLayer);
+
+    safeAddLayer({
+      id: 'sng-mpo-line',
+      type: 'line',
+      source: 'sng-mpo',
+      layout: { visibility: layerMpoVisible ? 'visible' : 'none' },
+      paint: { 'line-color': '#003f8f', 'line-width': 4, 'line-opacity': 1 }
+    }, beforeLampLayer);
+
+    geoLayersReady = true;
+    window.__sngGeoBounds = geoBounds(mpoData);
+    setGeoVis();
+
+    console.log('[GeoJSON] capa de municipio agregada OK:', {
+      municipioSource: !!map.getSource('sng-mpo'),
+      municipioLine: !!map.getLayer('sng-mpo-line')
+    });
+
+    geoStatus('Límite municipal de Puebla visible', true);
+  } catch (err) {
+    console.error('Error cargando GeoJSON externos:', err);
+    geoStatus('No pude pintar los GeoJSON: ' + err.message, false);
+  } finally {
+    geoLayersLoading = false;
+  }
+}
+
+function geoColEnter() {
+  if (layerColVisible) map.getCanvas().style.cursor = 'pointer';
+}
+
+function geoColLeave() {
+  map.getCanvas().style.cursor = '';
+}
+
+function geoColClick(e) {
+  if (!layerColVisible) return;
+  const p = e.features && e.features[0] ? e.features[0].properties : {};
+  const nombre = p.NOM_ASEN || p.nombre || p.Name || p.NOMBRE || '';
+  if (!nombre || nombre === 'NINGUNO') return;
+  new mapboxgl.Popup({ offset: 10 })
+    .setLngLat(e.lngLat)
+    .setHTML('<div style="font-family:inherit;padding:10px 14px;min-width:160px"><strong style="font-size:13px;color:#4a0f24;display:block;margin-bottom:4px">' + nombre + '</strong><span style="font-size:11px;color:#6b7a92">Colonia / asentamiento</span></div>')
+    .addTo(map);
+}
+
+function setGeoVis() {
+  if (!map) return;
+  const mv = layerMpoVisible ? 'visible' : 'none';
+  const cv = layerColVisible ? 'visible' : 'none';
+  ['sng-mpo-fill', 'sng-mpo-line'].forEach(id => {
+    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', mv);
+  });
+  ['sng-col-fill', 'sng-col-line', 'sng-col-label'].forEach(id => {
+    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', cv);
+  });
+}
+
+const btnMunicipio = document.getElementById('btnMunicipio');
+if (btnMunicipio) {
+  btnMunicipio.classList.remove('active');
+  btnMunicipio.onclick = async function() {
+    layerMpoVisible = !layerMpoVisible;
+    if (layerMpoVisible) {
+      await addGeoLayers();
+      if (window.__sngGeoBounds && !window.__sngGeoBounds.isEmpty()) {
+        map.fitBounds(window.__sngGeoBounds, { padding: 70, maxZoom: 13 });
+      }
+    }
+    setGeoVis();
+    btnMunicipio.classList.toggle('active', layerMpoVisible);
+  };
+}
+
+const btnColonias = document.getElementById('btnColonias');
+if (btnColonias) {
+  btnColonias.classList.remove('active');
+  btnColonias.onclick = async function() {
+    layerColVisible = !layerColVisible;
+    if (layerColVisible) {
+      await addGeoLayers();
+      if (window.__sngGeoBounds && !window.__sngGeoBounds.isEmpty()) {
+        map.fitBounds(window.__sngGeoBounds, { padding: 70, maxZoom: 13 });
+      }
+    }
+    setGeoVis();
+    btnColonias.classList.toggle('active', layerColVisible);
+  };
+}
+
+window.addEventListener('error', function(e) {
+  console.error('[ERROR GLOBAL]', e.message, e.error);
+  try { geoStatus('Error JS: ' + e.message, false); } catch (_) {}
+});
+
+// Boot va al final para que addGeoLayers y GEO_MPO ya existan antes de iniciar Mapbox.
+boot();
+</script>
+</body>
+</html>
